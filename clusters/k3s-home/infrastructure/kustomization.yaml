@@ -12,6 +12,7 @@ spec:
     name: flux-system
   # dependsOn: # Add if Cilium depends on Gateway CRDs, etc.
   #   - name: gateway-api-crds
+  timeout: 15m
   resources:
     # - ./00-gateway-api
     - ./01-cilium
