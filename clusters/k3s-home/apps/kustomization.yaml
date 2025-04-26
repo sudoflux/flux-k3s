@@ -14,9 +14,3 @@ spec: # Contains Flux instructions
   dependsOn: # Optional: Define dependencies on other Flux Kustomizations
     - name: infrastructure
   timeout: 5m
-  # List subdirectories (containing standard kustomization.yaml files)
-  # OR specific Flux resources within this path
-  resources:
-    - ./sources # Points to ./sources/kustomization.yaml
-    - ./media # Points to ./media/kustomization.yaml
-    - ./monitoring # Points to ./monitoring/kustomization.yaml
