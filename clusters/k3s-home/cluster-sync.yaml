@@ -1,0 +1,31 @@
+# clusters/k3s-home/cluster-sync.yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infrastructure # Name for the infra layer sync
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./clusters/k3s-home/infrastructure # Path relative to repo root
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  timeout: 15m
+  # dependsOn: # Add if needed
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps # Name for the apps layer sync
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./clusters/k3s-home/apps # Path relative to repo root
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn: # Crucial dependency
+    - name: infrastructure
+  timeout: 5m

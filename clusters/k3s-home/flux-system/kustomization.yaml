@@ -1,5 +1,6 @@
+# clusters/k3s-home/flux-system/kustomization.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - gotk-components.yaml
-  - gotk-sync.yaml
+  - ../cluster-sync.yaml # Point to the new file defining infra/apps Kustomizations
