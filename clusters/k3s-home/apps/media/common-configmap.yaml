@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rr-env       
+  namespace: media    
+data:
+  # --- Your common environment variables ---
+  TZ: "America/Kentucky/Louisville" 
+  PUID: "1000"                       
+  PGID: "1000"                      
