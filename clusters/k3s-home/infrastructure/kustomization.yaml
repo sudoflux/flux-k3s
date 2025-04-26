@@ -1,20 +1,7 @@
-apiVersion: kustomize.toolkit.fluxcd.io/v1
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-metadata:
-  name: infrastructure
-  namespace: flux-system
-spec:
-  interval: 10m0s
-  path: ./infrastructure
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  # dependsOn: # Add if Cilium depends on Gateway CRDs, etc.
-  #   - name: gateway-api-crds
-  timeout: 15m
-  resources:
-    # - ./00-gateway-api
-    - ./01-cilium
-    # - ./02-cert-manager
-    - ./03-storage-pvs
+resources:
+  # - ./00-gateway-api # Uncomment if used
+  - ./01-cilium
+  # - ./02-cert-manager # Uncomment if used
+  - ./03-storage-pvs
