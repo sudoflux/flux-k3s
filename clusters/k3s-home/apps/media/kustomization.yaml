@@ -5,12 +5,12 @@ resources:
   - namespace.yaml
   - persistent-volume-claims.yaml 
   - common-configmap.yaml       
-  - ./radarr                  
-  - ./sonarr                    
-  - ./lidarr
-  - ./prowlarr
-  - ./bazarr
-  - ./overseerr
-  - ./plex
-  - ./sabnzbd
+  - ./radarr/helmrelease.yaml                  
+  - ./sonarr/helmrelease.yaml                    
+  - ./lidarr/helmrelease.yaml
+  - ./prowlarr/helmrelease.yaml
+  - ./bazarr/helmrelease.yaml
+  - ./overseerr/helmrelease.yaml
+  - ./plex/helmrelease.yaml
+  - ./sabnzbd/helmrelease.yaml
   
