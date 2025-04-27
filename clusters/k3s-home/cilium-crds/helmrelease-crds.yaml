@@ -12,9 +12,12 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: cilium
-        namespace: kube-system  # Changed from flux-system to kube-system
+        namespace: kube-system
   install:
-    crds: CreateReplace
+    crds: Ignore  # Changed from CreateReplace to Ignore
   upgrade:
-    crds: CreateReplace
+    crds: Ignore  # Changed from CreateReplace to Ignore
+  values:
+    crds:
+      enabled: false  # Ensure the chart doesn’t try to manage CRDs
   retries: 3

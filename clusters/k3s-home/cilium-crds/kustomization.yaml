@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - helmrepository.yaml
   - helmrelease-crds.yaml
+  - cilium-crds.yaml
