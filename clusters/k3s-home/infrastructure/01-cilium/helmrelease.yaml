@@ -1,96 +1,63 @@
-# Deploys Cilium using the Helm chart with specific configuration
+# clusters/k3s-home/infrastructure/01-cilium/helmrelease.yaml
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: cilium
-  namespace: kube-system # Cilium components live here
+  name: cilium # Main release name
+  namespace: kube-system
 spec:
   interval: 1h
   chart:
     spec:
       chart: cilium
-      version: "1.17.2" # Pinning the version you want
+      version: "1.17.2"
       sourceRef:
         kind: HelmRepository
         name: cilium
-        namespace: flux-system # Where the HelmRepository resource lives
-      interval: 30m
+        namespace: flux-system
+  # CRITICAL: Tell Helm install/upgrade to SKIP CRD handling
   install:
+    skipCRDs: true
     remediation:
       retries: 3
   upgrade:
+    skipCRDs: true
     remediation:
       retries: 3
+  # CRITICAL: Also disable via values if the chart uses it
   values:
-    # Let Cilium Operator manage CRD upgrades if needed by this version
-    # operator.upgradeCRDs: true # Check if needed for 1.17.2->future upgrades
-
-    # Replace kube-proxy
-    kubeProxyReplacement: strict # Recommended over 'true'
-
-    # Enable BGP Control Plane
+    crds:
+      enabled: false # Tell the chart logic itself not to manage CRDs
+    # --- All your other BGP, Ingress, Hubble values below ---
+    kubeProxyReplacement: strict
     bgpControlPlane:
       enabled: true
-
-    # LoadBalancer settings (uses IP Pool defined in ip-pool.yaml)
     loadBalancer:
-       mode: dsr # Or 'snat'. Ensure your network supports DSR if used.
-
-    # Disable L2 announcements if BGP is the primary method
+       mode: dsr
     l2announcements:
       enabled: false
-
-    # Ingress Controller Settings
     ingressController:
       enabled: true
-      # Make this the default IngressClass for the cluster
       ingressClassResource:
-        name: cilium
-        default: true
-        controllerValue: "io.cilium/ingress-controller"
-      # Expose via LoadBalancer using BGP and IP Pool
+         name: cilium
+         default: true
+         controllerValue: "io.cilium/ingress-controller"
       service:
         type: LoadBalancer
-        # --- CRITICAL: Use default ports 80/443 ---
-        # REMOVED httpPort: 8080
-        # REMOVED httpsPort: 8443
         annotations:
-          # Requesting a specific IP (optional, remove if you want any available IP)
-          # Ensure this IP is within the range defined in ip-pool.yaml
           io.cilium/lb-ipam-ips: "192.168.10.40"
-          # Add the label needed by the BGPPeeringPolicy serviceSelector
-          # Note: bgpControlPlane might handle LB IPs automatically,
-          # making this label unnecessary. Test without first.
-          # bgp: enabled
-      loadbalancerMode: dedicated # Give Ingress controller its own dedicated LB IP
-
-    # Disable Gateway API if using Ingress Controller
+          # bgp: enabled # Probably not needed if BGP CP handles LB IPs
+      loadbalancerMode: dedicated
     gatewayAPI:
       enabled: false
-
-    # Hubble observability
     hubble:
       enabled: true
-      metrics:
-        enabled:
-          - dns:query;ignoreAAAA
-          - drop
-          - tcp
-          - flow
-          - port-distribution
-          - icmp
-          - http
       relay:
         enabled: true
       ui:
         enabled: true
-
-    # Client rate limits
     k8sClientRateLimit:
       qps: 50
       burst: 200
-
-    # Automatic pod rollout on config changes
     operator:
       rollOutPods: true
     rollOutCiliumPods: true
