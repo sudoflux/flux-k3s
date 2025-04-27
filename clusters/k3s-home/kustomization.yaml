@@ -5,4 +5,3 @@ resources:
   - ./flux-system
   # Include the file that DEFINES the next layer Kustomizations
   - layers.yaml
-  - cilium-crds/cilium-crds.yaml
