@@ -1,7 +1,21 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
-resources:
-  # - ./00-gateway-api # Uncomment if used
-  - ./01-cilium
-  # - ./02-cert-manager # Uncomment if used
-  - ./03-storage-pvs
+metadata:
+  name: infrastructure
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: cilium-crds
+      namespace: flux-system
+  interval: 10m
+  path: ./clusters/k3s-home/infrastructure
+  prune: true
+  sourceRef:
+    kind: GitRepository
+      name: flux-system
+  targetNamespace: kube-system
+  resources:
+    # - ./00-gateway-api # Uncomment if used
+    - ./01-cilium
+    # - ./02-cert-manager # Uncomment if used
+    - ./03-storage-pvs
