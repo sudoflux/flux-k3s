@@ -12,10 +12,10 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-      name: flux-system
+    name: flux-system
   targetNamespace: kube-system
-  resources:
-    # - ./00-gateway-api # Uncomment if used
-    - ./01-cilium
-    # - ./02-cert-manager # Uncomment if used
-    - ./03-storage-pvs
+resources:
+  # - ./00-gateway-api # Uncomment if used
+  - ./01-cilium
+  # - ./02-cert-manager # Uncomment if used
+  - ./03-storage-pvs
