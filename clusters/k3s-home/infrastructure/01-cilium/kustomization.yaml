@@ -6,4 +6,4 @@ resources:
   - helmrelease.yaml
   - helmrepository.yaml
   - ip-pool.yaml
-  - bgp-peering.yaml
+#  - bgp-peering.yaml
