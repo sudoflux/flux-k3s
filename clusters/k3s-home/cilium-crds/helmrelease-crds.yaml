@@ -1,27 +1,20 @@
-# clusters/k3s-home/infrastructure/01-cilium/helmrelease-crds.yaml
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: cilium-crds # Separate name
+  name: cilium-crds
   namespace: kube-system
 spec:
-  interval: 3h # CRDs change less often, sync less frequently
+  interval: 3h
   chart:
     spec:
       chart: cilium
-      version: "1.17.2" # Match the main chart version
+      version: "1.17.2"
       sourceRef:
         kind: HelmRepository
         name: cilium
-        namespace: flux-system
-  # Tell Helm install to ONLY install/replace CRDs from the /crds dir
+        namespace: kube-system  # Changed from flux-system to kube-system
   install:
-    crds: CreateReplace # Ensures CRDs are installed/updated
-    remediation:
-      retries: 3
-  # Tell Helm upgrade to ONLY upgrade CRDs
+    crds: CreateReplace
   upgrade:
     crds: CreateReplace
-    remediation:
-      retries: 3
-  # No 'values:' needed typically, focused only on chart's /crds folder
+  retries: 3
