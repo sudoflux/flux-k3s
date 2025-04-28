@@ -1,60 +1,57 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta2 # Or v2beta1 if using older Flux
+apiVersion: helm.toolkit.fluxcd.io/v2beta2 # Or v2beta1
 kind: HelmRelease
 metadata:
   name: cilium
-  namespace: kube-system # Cilium components will be installed in kube-system
+  namespace: kube-system
 spec:
   interval: 15m
   chart:
     spec:
-      chart: cilium # The name of the chart in the repository
-      version: "1.15.3" # Specify a VALID Cilium version (e.g., 1.14.5, 1.15.3)
+      chart: cilium
+      version: "1.15.3" # Or your desired valid version
       sourceRef:
         kind: HelmRepository
-        name: cilium        # Must match the HelmRepository name from step 2
-        namespace: flux-system # Must match the HelmRepository namespace from step 2
+        name: cilium
+        namespace: flux-system
       interval: 5m
-  # --- CRD Management by Helm ---
   install:
     remediation:
-      retries: 5 # More retries can help with CRD readiness
-    crds: CreateReplace # Helm will install/upgrade CRDs from the chart
+      retries: 5
+    crds: CreateReplace
   upgrade:
     remediation:
       retries: 5
       remediateLastFailure: true
     crds: CreateReplace
-  # ------------------------------
-  # --- Cilium Configuration Values ---
-  # These are examples for k3s, you WILL need to adjust them
+  # --- Corrected Cilium Configuration Values ---
   values:
     # --- K3s Specifics (Important!) ---
-    k8sServiceHost: "192.168.10.30" # For single-node k3s, or the IP of your k3s server
+    k8sServiceHost: "192.168.10.30" # Your master IP
     k8sServicePort: 6443       # Default k3s API server port
-    kubeProxyReplacement: "strict" # Recommended for most Cilium installs
-    # If you're running k3s with flannel (default) and want Cilium to take over CNI:
-    # cni:
-    #   install: true
-    #   uninstall: false # Don't let Cilium uninstall existing CNI on its own uninstall
-    #   binPath: /var/lib/rancher/k3s/data/current/bin # k3s CNI bin path
-    #   confPath: /var/lib/rancher/k3s/agent/etc/cni/net.d # k3s CNI conf path
+    kubeProxyReplacement: "strict" # Keep this
 
-    # If k3s was started with --flannel-backend=none, Cilium can use standard CNI paths
-    # cni:
-    #  install: true
+    # --- Cilium CNI Configuration (because Flannel is removed) ---
+    cni:
+      install: true     # Tell Cilium to install its CNI config file
+      exclusive: true   # IMPORTANT: Tell Cilium it's the exclusive CNI now
+      # binPath/confPath often detected correctly when exclusive=true,
+      # but specifying them doesn't hurt for K3s.
+      binPath: /var/lib/rancher/k3s/data/current/bin
+      confPath: /var/lib/rancher/k3s/agent/etc/cni/net.d
+      # REMOVED uninstall: true - it's not needed or effective here
 
     # --- Operator and Agent ---
     operator:
       replicas: 1 # For smaller clusters
     # --- Hubble (Optional Observability) ---
     hubble:
-      enabled: true # Set to false if you don't need Hubble UI/Relay initially
+      enabled: true
       relay:
         enabled: true
       ui:
         enabled: true
     # --- Other common values ---
     # ipam:
-    #   mode: "kubernetes"
+    #   mode: "kubernetes" # Default is cluster-pool, which is usually fine
     # bgpControlPlane:
-    #   enabled: false # Set to true if you use BGP
+    #   enabled: false
