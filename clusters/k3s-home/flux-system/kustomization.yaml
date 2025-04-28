@@ -4,5 +4,3 @@ kind: Kustomization
 resources:
   - gotk-components.yaml
   - gotk-sync.yaml
-  - layers.yaml # Includes infrastructure and apps Kustomizations
-  # - kustomization-sources.yaml # Include if sources Kustomization is a separate file
