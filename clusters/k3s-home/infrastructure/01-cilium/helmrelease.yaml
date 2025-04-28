@@ -1,63 +1,60 @@
-# clusters/k3s-home/infrastructure/01-cilium/helmrelease.yaml
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2beta2 # Or v2beta1 if using older Flux
 kind: HelmRelease
 metadata:
-  name: cilium # Main release name
-  namespace: kube-system
+  name: cilium
+  namespace: kube-system # Cilium components will be installed in kube-system
 spec:
-  interval: 1h
+  interval: 15m
   chart:
     spec:
-      chart: cilium
-      version: "1.17.2"
+      chart: cilium # The name of the chart in the repository
+      version: "1.15.3" # Specify a VALID Cilium version (e.g., 1.14.5, 1.15.3)
       sourceRef:
         kind: HelmRepository
-        name: cilium
-        namespace: flux-system
-  # CRITICAL: Tell Helm install/upgrade to SKIP CRD handling
+        name: cilium        # Must match the HelmRepository name from step 2
+        namespace: flux-system # Must match the HelmRepository namespace from step 2
+      interval: 5m
+  # --- CRD Management by Helm ---
   install:
-    skipCRDs: true
     remediation:
-      retries: 3
+      retries: 5 # More retries can help with CRD readiness
+    crds: CreateReplace # Helm will install/upgrade CRDs from the chart
   upgrade:
-    skipCRDs: true
     remediation:
-      retries: 3
-  # CRITICAL: Also disable via values if the chart uses it
+      retries: 5
+      remediateLastFailure: true
+    crds: CreateReplace
+  # ------------------------------
+  # --- Cilium Configuration Values ---
+  # These are examples for k3s, you WILL need to adjust them
   values:
-    crds:
-      enabled: false # Tell the chart logic itself not to manage CRDs
-    # --- All your other BGP, Ingress, Hubble values below ---
-    kubeProxyReplacement: strict
-    bgpControlPlane:
-      enabled: true
-    loadBalancer:
-       mode: dsr
-    l2announcements:
-      enabled: false
-    ingressController:
-      enabled: true
-      ingressClassResource:
-         name: cilium
-         default: true
-         controllerValue: "io.cilium/ingress-controller"
-      service:
-        type: LoadBalancer
-        annotations:
-          io.cilium/lb-ipam-ips: "192.168.10.40"
-          # bgp: enabled # Probably not needed if BGP CP handles LB IPs
-      loadbalancerMode: dedicated
-    gatewayAPI:
-      enabled: false
+    # --- K3s Specifics (Important!) ---
+    k8sServiceHost: "127.0.0.1" # For single-node k3s, or the IP of your k3s server
+    k8sServicePort: 6443       # Default k3s API server port
+    kubeProxyReplacement: "strict" # Recommended for most Cilium installs
+    # If you're running k3s with flannel (default) and want Cilium to take over CNI:
+    # cni:
+    #   install: true
+    #   uninstall: false # Don't let Cilium uninstall existing CNI on its own uninstall
+    #   binPath: /var/lib/rancher/k3s/data/current/bin # k3s CNI bin path
+    #   confPath: /var/lib/rancher/k3s/agent/etc/cni/net.d # k3s CNI conf path
+
+    # If k3s was started with --flannel-backend=none, Cilium can use standard CNI paths
+    # cni:
+    #  install: true
+
+    # --- Operator and Agent ---
+    operator:
+      replicas: 1 # For smaller clusters
+    # --- Hubble (Optional Observability) ---
     hubble:
-      enabled: true
+      enabled: true # Set to false if you don't need Hubble UI/Relay initially
       relay:
         enabled: true
       ui:
         enabled: true
-    k8sClientRateLimit:
-      qps: 50
-      burst: 200
-    operator:
-      rollOutPods: true
-    rollOutCiliumPods: true
+    # --- Other common values ---
+    # ipam:
+    #   mode: "kubernetes"
+    # bgpControlPlane:
+    #   enabled: false # Set to true if you use BGP
