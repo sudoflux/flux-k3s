@@ -3,7 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - flux-system/ # Process manifests inside the flux-system dir (like gotk-components.yaml)
-  - sources/     # Process manifests inside the sources dir
+  - apps/sources/     # Process manifests inside the sources dir
   - infrastructure/ # Process manifests inside the infrastructure dir
   - apps/         # Process manifests inside the apps dir
   # --- List files directly in this directory ---
