@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: cilium
-      version: "1.15.3" # Or your desired valid version
+      version: "1.17.3" # Or your desired valid version
       sourceRef:
         kind: HelmRepository
         name: cilium
