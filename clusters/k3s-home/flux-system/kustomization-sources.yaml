@@ -1,0 +1,19 @@
+# clusters/k3s-home/flux-system/kustomization-sources.yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1 # Or v1beta2/v1beta1 depending on Flux version
+kind: Kustomization
+metadata:
+  # --- THIS NAME MUST MATCH THE dependsOn ---
+  name: cluster-sources
+  # ----------------------------------------
+  namespace: flux-system
+spec:
+  interval: 10m
+  # --- Point this to the directory containing your sources kustomization.yaml build file ---
+  path: ./clusters/k3s-home/apps/sources # <--- Adjust if your sources dir path is different
+  # ---------------------------------------------------------------------------------------
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system # Or your GitRepository object name
+  wait: true # Wait for HelmRepositories etc. to be Ready
+  timeout: 3m

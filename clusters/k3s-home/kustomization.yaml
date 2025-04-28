@@ -1,9 +1,8 @@
-# clusters/k3s-home/kustomization.yaml (Example - adjust path if needed)
+# clusters/k3s-home/kustomization.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - flux-system/ # Process manifests inside the flux-system dir (like gotk-components.yaml)
-  - infrastructure/ # Process manifests inside the infrastructure dir
-  - apps/         # Process manifests inside the apps dir
-  # --- List files directly in this directory ---
-  - layers.yaml  # <---- ADD THIS (if it's not already listed correctly)
+  - flux-system/    # This directory should contain kustomization-sources.yaml (or similar)
+  - infrastructure/
+  - apps/
+  - layers.yaml     # This file defines the 'infrastructure' Kust which depends on 'cluster-sources'
