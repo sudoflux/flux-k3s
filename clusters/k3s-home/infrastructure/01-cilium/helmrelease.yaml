@@ -58,9 +58,9 @@ spec:
     kubeProxyReplacement: true
 
     # == Native Routing (Recommended for DSR) ==
-    tunnel: disabled # Explicitly disable tunneling
-    routingMode: native # Use native routing
-    autoDirectNodeRoutes: true # Often needed with native routing
+    # tunnel: disabled # Explicitly disable tunneling
+    # routingMode: native # Use native routing
+    # autoDirectNodeRoutes: true # Often needed with native routing
 
     # == BGP Control Plane ==
     bgpControlPlane:
@@ -68,7 +68,7 @@ spec:
 
     # == Load Balancing Features ==
     loadBalancer:
-      mode: dsr
+      mode: snat
     l2announcements:
       enabled: true
     serviceExternalIPs:
