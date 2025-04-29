@@ -57,6 +57,11 @@ spec:
     # == Kube-Proxy Replacement ==
     kubeProxyReplacement: true
 
+    # == Native Routing (Recommended for DSR) ==
+    tunnel: disabled # Explicitly disable tunneling
+    routingMode: native # Use native routing
+    autoDirectNodeRoutes: true # Often needed with native routing
+
     # == BGP Control Plane ==
     bgpControlPlane:
       enabled: true
