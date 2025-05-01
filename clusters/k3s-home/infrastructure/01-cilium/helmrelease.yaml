@@ -4,8 +4,7 @@ metadata:
   name: cilium
   namespace: kube-system
 spec:
-  # ────────────────────────────────────────────────────
-  # Allow up to 15 minutes for any Helm action
+  # Allow the entire release up to 15 minutes for any Helm action
   timeout: 15m0s
   interval: 5m
 
@@ -21,14 +20,16 @@ spec:
       reconcileStrategy: ChartVersion
 
   install:
+    # Ensure CRDs are created or replaced
     crds: CreateReplace
     remediation:
       retries: 5
 
   upgrade:
-    # ────────────────────────────────────────────────────
     # Allow up to 15 minutes just for the upgrade step
     timeout: 15m0s
+    # Skip waiting on pod readiness failures
+    disableWait: true
     crds: CreateReplace
     remediation:
       retries: 5
@@ -36,7 +37,7 @@ spec:
 
   values:
     # ────────────────────────────────────────────────────
-    # Disable the agent startupProbe so Helm doesn’t wait on failing probes
+    # Disable the agent startupProbe so Helm won’t hang on failures
     agent:
       startupProbe:
         enabled: false
