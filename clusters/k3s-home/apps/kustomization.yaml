@@ -4,4 +4,5 @@ resources:
   - ./sources
   - ./media
   - ./monitoring
+  - ./media-kustomization.yaml
   
