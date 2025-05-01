@@ -1,18 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: sonarr-ingress
+  name: overseerr-ingress
   namespace: media
 spec:
   ingressClassName: cilium
   rules:
-    - host: sonarr.fletcherlabs.net
+    - host: overseerr.fletcherlabs.net
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: sonarr
+                name: overseerr
                 port:
-                  number: 8989
+                  number: 5055

@@ -1,18 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: sonarr-ingress
+  name: prowlarr-ingress
   namespace: media
 spec:
   ingressClassName: cilium
   rules:
-    - host: sonarr.fletcherlabs.net
+    - host: prowlarr.fletcherlabs.net
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: sonarr
+                name: prowlarr
                 port:
-                  number: 8989
+                  number: 9696

@@ -1,18 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: sonarr-ingress
+  name: bazarr-ingress
   namespace: media
 spec:
   ingressClassName: cilium
   rules:
-    - host: sonarr.fletcherlabs.net
+    - host: bazarr.fletcherlabs.net
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: sonarr
+                name: bazarr
                 port:
-                  number: 8989
+                  number: 6767
