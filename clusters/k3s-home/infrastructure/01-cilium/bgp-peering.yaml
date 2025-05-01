@@ -4,14 +4,14 @@ metadata:
   name: bgp-peering
   namespace: kube-system
 spec:
-  # Select all nodes labeled “bgp=enabled”
+  # Match the nodes where Cilium should speak BGP
   nodeSelector:
     matchLabels:
       bgp: enabled
 
   virtualRouters:
-  - localASN: 65001        
-    exportPodCIDR: true    # advertise Pod CIDRs only
+  - localASN: 65001          # your Cilium ASN
+    exportPodCIDR: true      # advertise Pod CIDRs
     neighbors:
-      - peerAddress: "192.168.1.1"  # UDM-SE BGP IP
-        peerASN:    64512           # UDM-SE ASN
+      - peerAddress: "192.168.1.1/32"  # UDM-SE BGP IP as CIDR
+        peerASN:    64512             # UDM-SE ASN
