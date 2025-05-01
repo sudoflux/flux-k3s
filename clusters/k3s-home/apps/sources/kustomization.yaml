@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - k8s-at-home.yaml
   - helmrepository.yaml
+  - bjw-s.yaml
