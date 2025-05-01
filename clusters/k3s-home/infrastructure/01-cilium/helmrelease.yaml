@@ -4,7 +4,7 @@ metadata:
   name: cilium
   namespace: kube-system
 spec:
-  # Allow the entire release up to 15 minutes for any Helm action
+  # ── Give the entire release up to 15 minutes for any Helm action ──
   timeout: 15m0s
   interval: 5m
 
@@ -20,30 +20,23 @@ spec:
       reconcileStrategy: ChartVersion
 
   install:
-    # Ensure CRDs are created or replaced
     crds: CreateReplace
     remediation:
       retries: 5
 
   upgrade:
-    # Allow up to 15 minutes just for the upgrade step
+    # ── Allow upgrades up to 15 minutes ──
     timeout: 15m0s
-    # Skip waiting on pod readiness failures
-    disableWait: true
+    # ── Don’t wait on CRD hooks or pod readiness (bypass failing probes) ──
+    disableWait: true           # Disables waiting for resources to be ready :contentReference[oaicite:0]{index=0}
+    disableWaitForJobs: true    # Disables waiting for Jobs to complete :contentReference[oaicite:1]{index=1}
     crds: CreateReplace
     remediation:
       retries: 5
       remediateLastFailure: true
 
   values:
-    # ────────────────────────────────────────────────────
-    # Disable the agent startupProbe so Helm won’t hang on failures
-    agent:
-      startupProbe:
-        enabled: false
-
-    # ────────────────────────────────────────────────────
-    # RBAC / ServiceAccount
+    # ── RBAC / ServiceAccount ──
     rbac:
       create: true
     serviceAccounts:
@@ -54,8 +47,7 @@ spec:
         create: true
         name: cilium-operator
 
-    # ────────────────────────────────────────────────────
-    # Base K3s/CNI settings
+    # ── Base K3s/CNI settings ──
     k8sServiceHost: "192.168.10.30"
     k8sServicePort: 6443
     cni:
@@ -67,7 +59,7 @@ spec:
     operator:
       replicas: 1
 
-    # ────────────────────────────────────────────────────
+    # ── Core features ──
     kubeProxyReplacement: true
     bgpControlPlane:
       enabled: true
