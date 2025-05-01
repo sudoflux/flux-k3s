@@ -2,13 +2,23 @@ apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPPeeringPolicy
 metadata:
   name: bgp-peering
+  namespace: kube-system
 spec:
+  # ── Tell Cilium which pods to enable BGP on (all of your cilium agents) ──
+  serviceSelector:
+    matchLabels:
+      k8s-app: cilium
+
   virtualRouters:
-  - localASN: 64512  
-    exportPodCIDR: false
-    neighbors:
-    - peerAddress: "192.168.1.1/32"
-      peerASN: 64513
-    serviceSelector:
-      matchLabels:
-        bgp: enabled
+    - name: default
+      # This cluster’s ASN
+      localASN: 64512
+
+      # Export both Pod- and Service- CIDRs
+      exportPodCIDR: true
+      exportServiceCIDR: true
+
+      # Your UDM-SE peer
+      neighbors:
+        - peerAddress: "192.168.1.1"   # UDM-SE BGP IP
+          peerASN:    65001            # UDM-SE AS
