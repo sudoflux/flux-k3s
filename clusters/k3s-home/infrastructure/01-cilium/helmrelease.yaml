@@ -4,7 +4,11 @@ metadata:
   name: cilium
   namespace: kube-system
 spec:
+  # ────────────────────────────────────────────────────
+  # Allow up to 15 minutes for any Helm action
+  timeout: 15m0s
   interval: 5m
+
   chart:
     spec:
       chart: cilium
@@ -15,35 +19,42 @@ spec:
         namespace: flux-system
       interval: 15m
       reconcileStrategy: ChartVersion
+
   install:
+    crds: CreateReplace
     remediation:
       retries: 5
-    crds: CreateReplace
+
   upgrade:
+    # ────────────────────────────────────────────────────
+    # Allow up to 15 minutes just for the upgrade step
+    timeout: 15m0s
+    crds: CreateReplace
     remediation:
       retries: 5
       remediateLastFailure: true
-    crds: CreateReplace
 
-  # IMPORTANT: Define the final desired state values here
   values:
-    # ==========================================
-    # === ADD THESE SECTIONS FOR RBAC/SA ===
-    # ==========================================
-    rbac:
-      create: true # Ensure Roles/ClusterRoles and Bindings are created
-    serviceAccounts:
-      cilium: # For the agent pods
-        create: true
-        name: cilium # Optional: specify name if needed, usually default is fine
-      operator: # For the operator pods
-        create: true
-        name: cilium-operator # Optional: specify name if needed, usually default is fine
-    # ==========================================
-    # === Existing values below ===
-    # ==========================================
+    # ────────────────────────────────────────────────────
+    # Disable the agent startupProbe so Helm doesn’t wait on failing probes
+    agent:
+      startupProbe:
+        enabled: false
 
-    # == Base K3s/CNI settings ==
+    # ────────────────────────────────────────────────────
+    # RBAC / ServiceAccount
+    rbac:
+      create: true
+    serviceAccounts:
+      cilium:
+        create: true
+        name: cilium
+      operator:
+        create: true
+        name: cilium-operator
+
+    # ────────────────────────────────────────────────────
+    # Base K3s/CNI settings
     k8sServiceHost: "192.168.10.30"
     k8sServicePort: 6443
     cni:
@@ -51,22 +62,15 @@ spec:
       exclusive: true
       binPath: /var/lib/rancher/k3s/data/current/bin
       confPath: /var/lib/rancher/k3s/agent/etc/cni/net.d
+
     operator:
       replicas: 1
 
-    # == Kube-Proxy Replacement ==
+    # ────────────────────────────────────────────────────
     kubeProxyReplacement: true
-
-    # == Native Routing (Recommended for DSR) ==
-    # tunnel: disabled # Explicitly disable tunneling
-    # routingMode: native # Use native routing
-    # autoDirectNodeRoutes: true # Often needed with native routing
-
-    # == BGP Control Plane ==
     bgpControlPlane:
       enabled: true
 
-    # == Load Balancing Features ==
     loadBalancer:
       mode: snat
     l2announcements:
@@ -74,14 +78,12 @@ spec:
     serviceExternalIPs:
       enabled: true
 
-    # == Ingress Controller ==
     ingressController:
       enabled: true
       loadbalancerMode: dedicated
       service:
         type: LoadBalancer
 
-    # == Hubble Observability (Optional but Recommended) ==
     hubble:
       enabled: true
       relay:
