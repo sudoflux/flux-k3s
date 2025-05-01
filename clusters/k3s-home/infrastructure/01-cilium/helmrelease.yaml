@@ -39,10 +39,6 @@ spec:
       remediateLastFailure: true
 
   values:
-    # Disable the agent startupProbe so Helm doesn’t hang on health checks
-    agent:
-      startupProbe:
-        enabled: false
 
     # RBAC / ServiceAccounts
     rbac:
