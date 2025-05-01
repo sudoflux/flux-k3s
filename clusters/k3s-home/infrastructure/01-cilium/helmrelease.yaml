@@ -4,8 +4,6 @@ metadata:
   name: cilium
   namespace: kube-system
 spec:
-  # Install or replace CRDs before chart actions
-  crds: CreateReplace
 
   # Allow up to 15 minutes for all Helm actions
   timeout: 15m0s
