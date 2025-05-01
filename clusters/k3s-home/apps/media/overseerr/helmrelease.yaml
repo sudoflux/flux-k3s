@@ -1,34 +1,46 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: overseerr
+  name: overseerr 
   namespace: media
 spec:
   interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 3.7.3 
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
+      reconcileStrategy: ChartVersion
   values:
-    image:
-      repository: sctx/overseerr
-      tag: latest
     envFrom:
-      - configMapRef:
-          name: rr-env
+    - configMapRef:
+        name: rr-env
+
+    image:
+      repository: lscr.io/linuxserver/overseerr d
+      tag: latest
+
+    controller:
+      enabled: true
+      type: deployment
+
     service:
       main:
         ports:
           http:
             port: 5055
+
     ingress:
       main:
         enabled: false
+
     persistence:
       config:
         enabled: true
-        existingClaim: overseerr-config-pvc
+        existingClaim: overseerr-config-pvc 
+      data:
+        enabled: true
+        existingClaim: k3s-data-pvc 

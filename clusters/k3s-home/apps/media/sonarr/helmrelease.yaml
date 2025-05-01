@@ -1,37 +1,46 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: sonarr
+  name: sonarr 
   namespace: media
 spec:
   interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 3.7.3 
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
+      reconcileStrategy: ChartVersion
   values:
-    image:
-      repository: lscr.io/linuxserver/sonarr
-      tag: latest
     envFrom:
-      - configMapRef:
-          name: rr-env
+    - configMapRef:
+        name: rr-env
+
+    image:
+      repository: lscr.io/linuxserver/sonarr 
+      tag: latest
+
+    controller:
+      enabled: true
+      type: deployment
+
     service:
       main:
         ports:
           http:
-            port: 8989
+            port: 8989 
+
     ingress:
       main:
         enabled: false
+
     persistence:
       config:
         enabled: true
-        existingClaim: sonarr-config-pvc
-      media:
+        existingClaim: sonarr-config-pvc 
+      data:
         enabled: true
-        existingClaim: k3s-data-pvc
+        existingClaim: k3s-data-pvc 
