@@ -14,4 +14,4 @@ spec:
     exportPodCIDR: true      # advertise Pod CIDRs
     neighbors:
       - peerAddress: "192.168.1.1/32"  # UDM-SE BGP IP as CIDR
-        peerASN:    64512             # UDM-SE ASN
+        peerASN:    64513
