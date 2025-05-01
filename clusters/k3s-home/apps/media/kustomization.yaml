@@ -1,11 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+metadata:
+  name: media
 namespace: media
 resources:
   - namespace.yaml
   - persistent-volume-claims.yaml
   - common-configmap.yaml
-
   - ./radarr/helmrelease.yaml
   - ./radarr/ingress.yaml
   - ./sonarr/helmrelease.yaml
