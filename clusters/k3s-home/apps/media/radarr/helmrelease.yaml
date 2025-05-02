@@ -1,3 +1,4 @@
+# clusters/k3s-home/apps/media/radarr/helmrelease.yaml
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -8,16 +9,20 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      # --- TRY A SLIGHTLY OLDER VERSION ---
+      version: 3.7.0
+      # --- END VERSION CHANGE ---
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
       reconcileStrategy: ChartVersion
   values:
-    # controller: # REMOVED/COMMENTED from top level
-    #   enabled: true
-    #   type: deployment
+    # --- Using top-level controller based on latest standards ---
+    controller:
+      enabled: true
+      type: deployment
+    # --- END CONTROLLER BLOCK ---
 
     envFrom:
     - configMapRef:
@@ -41,9 +46,7 @@ spec:
 
     service:
       main:
-        controller: # <<< ADDED under service.main
-          enabled: true
-          type: deployment
+        # NO controller block here
         ports:
           http:
             port: 7878
