@@ -1,4 +1,3 @@
-# clusters/k3s-home/apps/media/radarr/helmrelease.yaml
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,28 +8,33 @@ spec:
   chart:
     spec:
       chart: app-template
-      # --- TRY A SLIGHTLY OLDER VERSION ---
-      version: 3.7.0
-      # --- END VERSION CHANGE ---
+      version: 3.7.3
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
       reconcileStrategy: ChartVersion
-  values:
-    # --- Using top-level controller based on latest standards ---
-    controller:
-      enabled: true
-      type: deployment
-    # --- END CONTROLLER BLOCK ---
 
+  values:
     envFrom:
-    - configMapRef:
-        name: rr-env
+      - configMapRef:
+          name: rr-env
 
     image:
       repository: lscr.io/linuxserver/radarr
       tag: latest
+
+    controllers:
+      main:
+        enabled: true
+        type: deployment
+
+    service:
+      main:
+        controller: main    # ← must be a string, not an object
+        ports:
+          http:
+            port: 7878
 
     ingress:
       main:
@@ -43,10 +47,3 @@ spec:
       data:
         enabled: true
         existingClaim: k3s-data-pvc
-
-    service:
-      main:
-        # NO controller block here
-        ports:
-          http:
-            port: 7878
