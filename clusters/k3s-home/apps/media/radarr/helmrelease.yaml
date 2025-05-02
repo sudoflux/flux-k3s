@@ -14,32 +14,29 @@ spec:
         name: bjw-s
         namespace: flux-system
       reconcileStrategy: ChartVersion
-
   values:
-    envFrom:
-      - configMapRef:
-          name: rr-env
-
-    image:
-      repository: lscr.io/linuxserver/radarr
-      tag: latest
-
     controllers:
       main:
         enabled: true
         type: deployment
-
+        containers:
+          main:
+            enabled: true
+            image:
+              repository: lscr.io/linuxserver/radarr
+              tag: latest
+            envFrom:
+              - configMapRef:
+                  name: rr-env
     service:
       main:
-        controller: main    # ← must be a string, not an object
+        controller: main
         ports:
           http:
             port: 7878
-
     ingress:
       main:
         enabled: false
-
     persistence:
       config:
         enabled: true

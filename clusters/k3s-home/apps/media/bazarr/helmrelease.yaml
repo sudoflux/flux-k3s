@@ -8,39 +8,39 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3 
+      version: 3.7.3
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
       reconcileStrategy: ChartVersion
   values:
-    envFrom:
-    - configMapRef:
-        name: rr-env
-
-    image:
-      repository: lscr.io/linuxserver/bazarr
-      tag: latest
-
-    controller:
-      enabled: true
-      type: deployment
-
+    controllers:
+      main:
+        enabled: true
+        type: deployment
+        containers:
+          main:
+            enabled: true
+            image:
+              repository: lscr.io/linuxserver/bazarr
+              tag: latest
+            envFrom:
+              - configMapRef:
+                  name: rr-env
     service:
       main:
+        controller: main
         ports:
           http:
             port: 6767
-
     ingress:
       main:
-        enabled: false 
-
+        enabled: false
     persistence:
       config:
         enabled: true
-        existingClaim: bazarr-config-pvc 
+        existingClaim: bazarr-config-pvc
       data:
         enabled: true
-        existingClaim: k3s-data-pvc 
+        existingClaim: k3s-data-pvc
