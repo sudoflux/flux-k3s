@@ -11,7 +11,8 @@ spec:
 
   virtualRouters:
   - localASN: 64512         # your Cilium ASN
-    exportPodCIDR: true      # advertise Pod CIDRs
+    exportPodCIDR: true
+    serviceSelector: {} # Export all services
     neighbors:
-      - peerAddress: "192.168.1.1/32"  # UDM-SE BGP IP as CIDR
+      - peerAddress: "192.168.1.1"  # UDM-SE BGP IP as CIDR
         peerASN:    64513
