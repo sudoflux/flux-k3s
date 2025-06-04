@@ -45,16 +45,18 @@ Your router (UDM-SE) must be configured with:
 
 The LoadBalancer IP pool is configured with range: `192.168.10.40` - `192.168.10.55`
 
-Current allocation:
-- `192.168.10.40` - Plex
-- `192.168.10.41` - Sonarr
-- `192.168.10.42` - Radarr
-- `192.168.10.43` - Prowlarr
-- `192.168.10.44` - SABnzbd
-- `192.168.10.45` - Bazarr
-- `192.168.10.46` - Lidarr
-- `192.168.10.47` - Overseerr
-- `192.168.10.48-55` - Available for future services
+Current allocation (via Cilium Ingress):
+- `192.168.10.41` - Bazarr ingress (HTTP/HTTPS)
+- `192.168.10.42` - Lidarr ingress (HTTP/HTTPS)
+- `192.168.10.43` - Overseerr ingress (HTTP/HTTPS)
+- `192.168.10.44` - Plex ingress (HTTP/HTTPS)
+- `192.168.10.45` - Prowlarr ingress (HTTP/HTTPS)
+- `192.168.10.46` - Radarr ingress (HTTP/HTTPS)
+- `192.168.10.47` - SABnzbd ingress (HTTP/HTTPS)
+- `192.168.10.48` - Sonarr ingress (HTTP/HTTPS)
+- `192.168.10.40, 49-55` - Available for future services
+
+**Note**: Media apps use ClusterIP services internally and are exposed via Cilium ingress controller for HTTP/HTTPS access with proper domain routing.
 
 ## Troubleshooting
 
@@ -65,9 +67,9 @@ Current allocation:
 kubectl -n kube-system exec -it deployment/cilium-operator -- cilium bgp peers
 ```
 
-2. Check if LoadBalancer IPs are assigned:
+2. Check if ingress LoadBalancer IPs are assigned:
 ```bash
-kubectl get svc -A -o wide | grep LoadBalancer
+kubectl get svc -n media -o wide | grep cilium-ingress
 ```
 
 3. Verify BGP routes on your router:
@@ -84,30 +86,46 @@ show ip bgp routes
    - Verify router BGP configuration
    - Check firewall rules allow BGP (TCP port 179)
 
-2. **LoadBalancer IPs not accessible**
-   - Verify BGP routes are being advertised
-   - Check if services have the correct annotations
-   - Ensure IP pool has available addresses
+2. **Ingress services not accessible**
+   - Verify BGP routes are being advertised for ingress IPs
+   - Check if ingress resources are properly configured
+   - Ensure IP pool has available addresses for ingress controller
 
-3. **Services stuck in Pending**
+3. **Services not reachable via ingress**
    - Check Cilium operator logs: `kubectl logs -n kube-system deployment/cilium-operator`
-   - Verify IP pool configuration
-   - Ensure service has proper annotations
+   - Verify ingress controller is running: `kubectl get pods -n kube-system | grep cilium`
+   - Check service endpoints: `kubectl get endpoints -n media`
 
 ## Service Configuration
 
-To enable LoadBalancer for a service, add:
+Media apps use ClusterIP services and are exposed via Cilium ingress:
 
 ```yaml
+# Service (ClusterIP - default)
 service:
   main:
-    type: LoadBalancer
+    controller: main
+    ports:
+      http:
+        port: 8080
+
+# Ingress
+ingress:
+  main:
+    enabled: true
+    className: cilium
     annotations:
-      io.cilium/lb-ipam-ips: "192.168.10.XX"  # Specific IP from pool
+      cilium.io/preserve-service-port: "true"
+    hosts:
+      - host: app.example.com
+        paths:
+          - path: /
+            service:
+              name: app-service
+              port: 8080
 ```
 
-Or let Cilium auto-assign:
-
+For dedicated LoadBalancer services (if needed), use:
 ```yaml
 service:
   main:

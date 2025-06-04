@@ -31,8 +31,7 @@ spec:
     service:
       main:
         controller: main
-        # Configure as LoadBalancer to expose via Cilium BGP
-        type: LoadBalancer
+        # Configure as ClusterIP to expose via Cilium ingress
         ports:
           http:
             port: 6767
