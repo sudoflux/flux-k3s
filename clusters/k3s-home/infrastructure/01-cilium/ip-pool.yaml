@@ -8,7 +8,8 @@ metadata:
   name: "first-pool"
 spec:
   blocks:
-    # IP range for LoadBalancer services
+    # IP range for LoadBalancer services  
+    # Using dedicated subnet 192.168.90.0/24 for clean BGP routing
     # Provides 16 IP addresses for services
-    - start: "192.168.10.40"
-      stop: "192.168.10.55"
+    - start: "192.168.90.40"
+      stop: "192.168.90.55"

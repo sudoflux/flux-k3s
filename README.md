@@ -43,18 +43,12 @@ Your router (UDM-SE) must be configured with:
 
 ## IP Address Allocation
 
-The LoadBalancer IP pool is configured with range: `192.168.10.40` - `192.168.10.55`
+The LoadBalancer IP pool is configured with range: `192.168.90.40` - `192.168.90.55`
 
-Current allocation (via Cilium Ingress):
-- `192.168.10.41` - Bazarr ingress (HTTP/HTTPS)
-- `192.168.10.42` - Lidarr ingress (HTTP/HTTPS)
-- `192.168.10.43` - Overseerr ingress (HTTP/HTTPS)
-- `192.168.10.44` - Plex ingress (HTTP/HTTPS)
-- `192.168.10.45` - Prowlarr ingress (HTTP/HTTPS)
-- `192.168.10.46` - Radarr ingress (HTTP/HTTPS)
-- `192.168.10.47` - SABnzbd ingress (HTTP/HTTPS)
-- `192.168.10.48` - Sonarr ingress (HTTP/HTTPS)
-- `192.168.10.40, 49-55` - Available for future services
+Current allocation:
+- Services will be dynamically assigned IPs from the pool
+- All ingresses share IPs based on the configured mode (shared/dedicated)
+- Access services via DNS names that resolve to the LoadBalancer IPs
 
 **Note**: Media apps use ClusterIP services internally and are exposed via Cilium ingress controller for HTTP/HTTPS access with proper domain routing.
 
