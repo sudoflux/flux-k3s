@@ -31,6 +31,11 @@ spec:
     service:
       main:
         controller: main
+        # Configure as LoadBalancer to expose via Cilium BGP
+        type: LoadBalancer
+        annotations:
+          # Assign specific IP from Cilium IP pool
+          io.cilium/lb-ipam-ips: "192.168.10.46"
         ports:
           http:
             port: 8686

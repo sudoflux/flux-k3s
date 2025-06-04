@@ -1,25 +1,50 @@
+# Media Stack Kustomization
+# This kustomization manages all media-related applications
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 metadata:
   name: media
 namespace: media
+
 resources:
+  # Namespace configuration
   - namespace.yaml
+  
+  # Shared resources
   - persistent-volume-claims.yaml
   - common-configmap.yaml
+  
+  # Media management applications
+  # Each app has a HelmRelease and Ingress configuration
+  
+  # Radarr - Movie collection manager
   - ./radarr/helmrelease.yaml
   - ./radarr/ingress.yaml
+  
+  # Sonarr - TV series collection manager  
   - ./sonarr/helmrelease.yaml
   - ./sonarr/ingress.yaml
+  
+  # Lidarr - Music collection manager
   - ./lidarr/helmrelease.yaml
   - ./lidarr/ingress.yaml
+  
+  # Bazarr - Subtitle management
   - ./bazarr/helmrelease.yaml
   - ./bazarr/ingress.yaml
+  
+  # Overseerr - Request management interface
   - ./overseerr/helmrelease.yaml
   - ./overseerr/ingress.yaml
+  
+  # Plex - Media server
   - ./plex/helmrelease.yaml
   - ./plex/ingress.yaml
+  
+  # Prowlarr - Indexer manager
   - ./prowlarr/helmrelease.yaml
   - ./prowlarr/ingress.yaml
+  
+  # SABnzbd - Usenet downloader
   - ./sabnzbd/helmrelease.yaml
   - ./sabnzbd/ingress.yaml

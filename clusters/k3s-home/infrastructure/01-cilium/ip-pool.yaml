@@ -1,8 +1,14 @@
+# Cilium LoadBalancer IP Pool Configuration
+# This pool defines the IP addresses that Cilium can assign to LoadBalancer services
+# These IPs will be advertised via BGP to your router
+#
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumLoadBalancerIPPool
 metadata:
   name: "first-pool"
 spec:
   blocks:
+    # IP range for LoadBalancer services
+    # Provides 16 IP addresses for services
     - start: "192.168.10.40"
       stop: "192.168.10.55"

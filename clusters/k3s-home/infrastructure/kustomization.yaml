@@ -1,7 +1,22 @@
+# Infrastructure Components Kustomization
+# This manages core infrastructure components required by applications
+#
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
 resources:
-  # - ./00-gateway-api # Uncomment if used
+  # Gateway API CRDs (disabled - uncomment if needed)
+  # Provides advanced ingress and service mesh capabilities
+  # - ./00-gateway-api
+  
+  # Cilium CNI with BGP
+  # Primary network plugin with LoadBalancer and BGP support
   - ./01-cilium
-  # - ./02-cert-manager # Uncomment if used
+  
+  # Certificate Manager (disabled - uncomment if needed)
+  # Automated TLS certificate management
+  # - ./02-cert-manager
+  
+  # Storage Persistent Volumes
+  # Pre-provisioned storage volumes for stateful applications
   - ./03-storage-pvs

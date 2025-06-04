@@ -1,8 +1,19 @@
-# clusters/k3s-home/infrastructure/01-cilium/kustomization.yaml
+# Cilium CNI with BGP Configuration
+# This kustomization deploys Cilium as the primary CNI with BGP support
+#
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: kube-system
+
 resources:
-  - ip-pool.yaml          # <<< CRD Instance
-  - bgp-peering.yaml      # <<< CRD Instance (Uncommented)
-  - helmrelease.yaml        # <<< Main HelmRelease (skips CRDs)
+  # LoadBalancer IP pool configuration
+  # Defines available IPs for LoadBalancer services (192.168.10.40-55)
+  - ip-pool.yaml
+  
+  # BGP peering configuration
+  # Configures BGP peering with router (AS 64513)
+  - bgp-peering.yaml
+  
+  # Main Cilium deployment
+  # Includes ingress controller, BGP control plane, and Hubble observability
+  - helmrelease.yaml
