@@ -77,7 +77,7 @@ spec:
 
     ingressController:
       enabled: true
-      loadbalancerMode: shared
+      loadbalancerMode: dedicated
       service:
         type: LoadBalancer
 
