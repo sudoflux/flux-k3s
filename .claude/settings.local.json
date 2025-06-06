@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push:*)",
+      "Bash(kubectl -n kube-system exec ds/cilium -- cilium bgp peers)",
+      "Bash(kubectl -n kube-system exec ds/cilium -- cilium bgp routes advertised ipv4 unicast)",
+      "Bash(kubectl get nodes:*)",
+      "Bash(kubectl get pods:*)",
+      "Bash(kubectl get svc:*)",
+      "Bash(kubectl get:*)"
+    ],
+    "deny": []
+  }
+}

@@ -1,0 +1,19 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: default-l2-announcement-policy
+spec:
+  # Announce all LoadBalancer services
+  serviceSelector:
+    matchLabels: {}
+  # Specify which nodes should announce
+  nodeSelector:
+    matchLabels:
+      bgp: enabled
+  # Specify which interfaces to use for announcements
+  interfaces:
+  - ^eth[0-9]+
+  - ^ens[0-9]+
+  - ^eno[0-9]+
+  # Enable external traffic policy
+  externalTrafficPolicy: Cluster

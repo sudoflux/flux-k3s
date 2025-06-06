@@ -14,6 +14,10 @@ resources:
   # Configures BGP peering with router (AS 64513)
   - bgp-peering.yaml
   
+  # L2 announcement policy
+  # Enables L2 (ARP) announcements for LoadBalancer IPs
+  - l2-announcement-policy.yaml
+  
   # Main Cilium deployment
   # Includes ingress controller, BGP control plane, and Hubble observability
   - helmrelease.yaml
