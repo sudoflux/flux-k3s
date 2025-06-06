@@ -69,8 +69,8 @@ spec:
       enabled: true
 
     loadBalancer:
-      mode: dsr
-      algorithm: maglev
+      mode: snat
+      acceleration: native
     l2announcements:
       enabled: true
     serviceExternalIPs:

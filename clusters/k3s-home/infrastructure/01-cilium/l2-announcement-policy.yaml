@@ -6,12 +6,13 @@ spec:
   # Announce all LoadBalancer services
   serviceSelector:
     matchLabels: {}
-  # Specify which nodes should announce
+  # Use all nodes for L2 announcements
   nodeSelector:
-    matchLabels:
-      bgp: enabled
+    matchLabels: {}
   # Specify which interfaces to use for announcements
   interfaces:
   - ^eth[0-9]+
   - ^ens[0-9]+
   - ^eno[0-9]+
+  # Enable load balancing across nodes
+  loadBalancerIPs: true
