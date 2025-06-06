@@ -7,7 +7,13 @@
       "Bash(kubectl get nodes:*)",
       "Bash(kubectl get pods:*)",
       "Bash(kubectl get svc:*)",
-      "Bash(kubectl get:*)"
+      "Bash(kubectl get:*)",
+      "Bash(flux get kustomizations:*)",
+      "Bash(flux reconcile:*)",
+      "Bash(flux reconcile kustomization:*)",
+      "Bash(kubectl describe:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

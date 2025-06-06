@@ -15,5 +15,3 @@ spec:
   - ^eth[0-9]+
   - ^ens[0-9]+
   - ^eno[0-9]+
-  # Enable external traffic policy
-  externalTrafficPolicy: Cluster
