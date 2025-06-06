@@ -19,7 +19,7 @@ spec:
   virtualRouters:
   - localASN: 64512         # Cilium's Autonomous System Number
     exportPodCIDR: true     # Advertise pod network to BGP peer
-    serviceSelector: {}     # Export all LoadBalancer services
+    # serviceSelector: {}   # Disabled - using L2 for LoadBalancer services
     neighbors:
       - peerAddress: "192.168.1.1/32"  # Router's BGP IP (UDM-SE)
         peerASN: 64513                 # Router's Autonomous System Number

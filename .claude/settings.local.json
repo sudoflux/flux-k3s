@@ -16,7 +16,8 @@
       "Bash(git commit:*)",
       "Bash(kubectl apply:*)",
       "Bash(kubectl -n kube-system logs ds/cilium --tail=20)",
-      "Bash(kubectl:*)"
+      "Bash(kubectl:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
