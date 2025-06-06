@@ -127,3 +127,4 @@ spec:
     requests:
       storage: 30Ti  # Full 30TB capacity for media storage
   storageClassName: ""
+  volumeName: k3s-data-pv

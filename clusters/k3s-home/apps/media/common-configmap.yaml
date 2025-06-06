@@ -5,6 +5,6 @@ metadata:
   namespace: media    
 data:
   # --- Your common environment variables ---
-  TZ: "America/Kentucky/Louisville" 
+  TZ: "America/New_York" 
   PUID: "1000"                       
   PGID: "1000"                      
