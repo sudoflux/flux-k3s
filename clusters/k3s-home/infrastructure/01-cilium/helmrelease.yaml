@@ -69,10 +69,13 @@ spec:
       enabled: true
 
     loadBalancer:
-      mode: snat
+      mode: dsr
+      algorithm: maglev
     l2announcements:
       enabled: true
     serviceExternalIPs:
+      enabled: true
+    externalIPs:
       enabled: true
 
     ingressController:

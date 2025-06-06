@@ -13,7 +13,10 @@
       "Bash(flux reconcile kustomization:*)",
       "Bash(kubectl describe:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(kubectl apply:*)",
+      "Bash(kubectl -n kube-system logs ds/cilium --tail=20)",
+      "Bash(kubectl:*)"
     ],
     "deny": []
   }
