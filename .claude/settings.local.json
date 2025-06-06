@@ -17,7 +17,8 @@
       "Bash(kubectl apply:*)",
       "Bash(kubectl -n kube-system logs ds/cilium --tail=20)",
       "Bash(kubectl:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(ping:*)"
     ],
     "deny": []
   }

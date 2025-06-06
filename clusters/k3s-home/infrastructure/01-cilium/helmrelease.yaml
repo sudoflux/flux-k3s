@@ -80,7 +80,7 @@ spec:
 
     ingressController:
       enabled: true
-      loadbalancerMode: dedicated
+      loadbalancerMode: shared
       service:
         type: LoadBalancer
 
