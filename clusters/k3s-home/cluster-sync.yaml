@@ -1,31 +1,98 @@
 # clusters/k3s-home/cluster-sync.yaml
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: infrastructure # Name for the infra layer sync
-  namespace: flux-system
-spec:
-  interval: 10m0s
-  path: ./clusters/k3s-home/infrastructure # Path relative to repo root
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  timeout: 15m
-  # dependsOn: # Add if needed
+# THIS FILE IS THE MASTER ORCHESTRATOR FOR THE CLUSTER
+
 ---
+# Layer 0: Sources (Helm Repositories, etc.)
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: apps # Name for the apps layer sync
+  name: cluster-sources # This Kustomization syncs your Helm repo definitions
   namespace: flux-system
 spec:
-  interval: 10m0s
-  path: ./clusters/k3s-home/apps # Path relative to repo root
+  interval: 10m
+  path: ./clusters/k3s-home/apps/sources # Correct path from your tree
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
-  dependsOn: # Crucial dependency
-    - name: infrastructure
+  wait: true
+
+---
+# Layer 1: CRDs (The API definitions)
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infra-crds
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/k3s-home/infrastructure/00-gateway-api
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cluster-sources
+
+---
+# Layer 2: Core Networking (Cilium)
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infra-cilium
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/k3s-home/infrastructure/01-cilium
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: infra-crds
+  wait: true
+  timeout: 20m
+  healthChecks: # Keeping your good health checks
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: cilium-operator
+      namespace: kube-system
+    - apiVersion: apps/v1
+      kind: DaemonSet
+      name: cilium
+      namespace: kube-system
+
+---
+# Layer 3: Runtime Infrastructure (Gateway Instance & Storage)
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infra-runtime
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/k3s-home/infrastructure-runtime
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: infra-cilium
+
+---
+# Layer 4: Applications
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/k3s-home/apps
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: infra-runtime
   timeout: 5m

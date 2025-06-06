@@ -1,0 +1,7 @@
+# clusters/k3s-home/infrastructure-runtime/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # This tells kustomize to look inside these sub-directories
+  - ./03-storage-pvs
+  - ./04-gateway

@@ -1,17 +1,20 @@
+# clusters/k3s-home/infrastructure/01-cilium/l2-announcement-policy.yaml
 apiVersion: cilium.io/v2alpha1
 kind: CiliumL2AnnouncementPolicy
 metadata:
   name: default-l2-announcement-policy
 spec:
-  # Announce all LoadBalancer services
-  serviceSelector:
-    matchLabels: {}
-  # Use all nodes for L2 announcements
+  # CHANGED: This is the modern way to select IPs for announcement.
+  # It directly links this policy to the IP Pool you defined.
+  ipPoolSelector:
+    matchLabels:
+      # This label is automatically added to your CiliumLoadBalancerIPPool
+      "io.cilium.ipam.pool": "first-pool"
+
+  # Use all nodes for L2 announcements (this is fine for a home lab)
   nodeSelector:
     matchLabels: {}
-  # Specify which interfaces to use for announcements
-  # Only use the USB 2.5Gbe dongles (enx*)
+
+  # Your interface selection is perfect, keep it.
   interfaces:
   - ^enx[a-f0-9]+
-  # Enable load balancing across nodes
-  # loadBalancerIPs: true

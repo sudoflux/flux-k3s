@@ -1,0 +1,5 @@
+# clusters/k3s-home/infrastructure/04-gateway/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: networking

@@ -38,9 +38,10 @@ spec:
       retries: 5
       remediateLastFailure: true
 
+# clusters/k3s-home/infrastructure/01-cilium/helmrelease.yaml
+# ... (spec section remains the same) ...
   values:
-
-    # RBAC / ServiceAccounts
+    # RBAC / ServiceAccounts (unchanged)
     rbac:
       create: true
     serviceAccounts:
@@ -51,7 +52,7 @@ spec:
         create: true
         name: cilium-operator
 
-    # Base K3s/CNI settings
+    # Base K3s/CNI settings (unchanged)
     k8sServiceHost: "192.168.10.30"
     k8sServicePort: 6443
     cni:
@@ -63,27 +64,38 @@ spec:
     operator:
       replicas: 1
 
+    # --- CORE CHANGES ARE HERE ---
+
     # Core features
     kubeProxyReplacement: true
     bgpControlPlane:
       enabled: true
 
+    # NEW: Enable Gateway API support
+    gatewayAPI:
+      enabled: true
+
+    # CHANGED: Use DSR mode for better performance with BGP
     loadBalancer:
-      mode: snat
-      acceleration: native
+      mode: "dsr"
+      l7:
+        backend: "envoy" # Required for Gateway API
+
+    # NEW: Enable L2 announcements
     l2announcements:
       enabled: true
-    serviceExternalIPs:
-      enabled: true
-    externalIPs:
-      enabled: true
 
+    # REMOVED/DISABLED: We are disabling the legacy Ingress Controller
     ingressController:
-      enabled: true
-      loadbalancerMode: shared
-      service:
-        type: LoadBalancer
+      enabled: false
 
+    # REMOVED: These are not needed for the BGP LoadBalancer model
+    # serviceExternalIPs:
+    #   enabled: false
+    # externalIPs:
+    #   enabled: false
+
+    # Hubble remains the same
     hubble:
       enabled: true
       relay:

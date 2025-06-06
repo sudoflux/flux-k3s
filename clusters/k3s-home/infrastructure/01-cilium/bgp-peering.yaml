@@ -4,22 +4,20 @@
 # IMPORTANT: For BGP to work, you must label your nodes with:
 # kubectl label node <node-name> bgp=enabled
 #
+# clusters/k3s-home/infrastructure/01-cilium/bgp-peering.yaml
 apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPPeeringPolicy
 metadata:
   name: bgp-peering
-  namespace: kube-system
+  # namespace: kube-system # Not needed, it's a cluster-scoped resource
 spec:
-  # Match the nodes where Cilium should speak BGP
-  # Only nodes with the label 'bgp=enabled' will peer
   nodeSelector:
     matchLabels:
-      bgp: enabled
-
+      bgp: enabled # Keep this, and remember to label your node(s)!
   virtualRouters:
-  - localASN: 64512         # Cilium's Autonomous System Number
-    exportPodCIDR: true     # Advertise pod network to BGP peer
-    # serviceSelector: {}   # Disabled - using L2 for LoadBalancer services
+  - localASN: 64512
+    # CHANGED: Set to false for simplicity. You only need to advertise LB IPs.
+    exportPodCIDR: false
     neighbors:
-      - peerAddress: "192.168.1.1/32"  # Router's BGP IP (UDM-SE)
-        peerASN: 64513                 # Router's Autonomous System Number
+      - peerAddress: "192.168.1.1/32"
+        peerASN: 64513
