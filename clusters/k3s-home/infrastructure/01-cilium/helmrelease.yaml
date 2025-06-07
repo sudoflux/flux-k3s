@@ -16,9 +16,13 @@ spec:
         name: cilium
         namespace: flux-system
   install:
-    remediation: { retries: 3 }
+    remediation: 
+      retries: 3
+    # Tell Flux to adopt the existing Helm release
+    replace: true
   upgrade:
-    remediation: { retries: 3 }
+    remediation: 
+      retries: 3
   values:
     # Base K3s/CNI settings
     k8sServiceHost: "192.168.10.30"
