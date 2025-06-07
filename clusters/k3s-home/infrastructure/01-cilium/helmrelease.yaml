@@ -40,7 +40,7 @@ spec:
     
     # Load Balancer configuration
     loadBalancer:
-      mode: "dsr"
+      mode: "snat"  # Changed from dsr to snat for compatibility with vxlan
       l7: 
         backend: "envoy"
     
