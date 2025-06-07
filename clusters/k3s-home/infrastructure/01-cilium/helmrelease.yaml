@@ -9,8 +9,8 @@ spec:
   chart:
     spec:
       chart: cilium
-      # UPGRADING to a version that properly supports these Helm values
-      version: "1.16.0-pre.0"
+      # Using latest stable Cilium version
+      version: "1.17.4"
       sourceRef:
         kind: HelmRepository
         name: cilium
@@ -31,61 +31,37 @@ spec:
     
     # Core Features
     kubeProxyReplacement: true
-    operator: { replicas: 1 }
-    gatewayAPI: { enabled: true }
+    operator: 
+      replicas: 1
+    
+    # Enable Gateway API support
+    gatewayAPI: 
+      enabled: true
+    
+    # Load Balancer configuration
     loadBalancer:
       mode: "dsr"
-      l7: { backend: "envoy" }
+      l7: 
+        backend: "envoy"
+    
+    # Hubble monitoring
     hubble:
       enabled: true
-      ui: { enabled: true }
-      relay: { enabled: true }
+      ui: 
+        enabled: true
+      relay: 
+        enabled: true
 
-    # --- BGP & IPAM Configuration for v1.16+ ---
+    # Enable BGP Control Plane (configuration via CRDs)
     bgpControlPlane:
       enabled: true
       
+    # IPAM Configuration
     ipam:
       mode: "cluster-pool"
       operator:
         clusterPoolIPv4PodCIDRList: ["10.42.0.0/16"]
 
-    # This top-level block defines BGP policies and peers
-    bgp:
-      enabled: true
-      # This enables the announcement of LoadBalancer IPs
-      announce:
-        loadBalancerIPs: true
-      # This defines the peering relationship with your router
-      peers:
-        - name: udm-se-peer
-          peerAddress: "192.168.1.1" # Your UDM SE's IP
-          peerAsn: 64513           # Your UDM SE's ASN
-          localAsn: 64512          # Your K3s cluster's ASN
-          # Apply this peering to nodes with the 'bgp=enabled' label
-          nodeSelector:
-            matchLabels:
-              bgp: enabled
-
-    # This top-level block defines L2 announcements
+    # Enable L2 announcements (configuration via CRDs)
     l2announcements:
       enabled: true
-      # This policy links L2 announcements to the IP pool below
-      policies:
-        - name: primary-l2-policy
-          ipPools:
-          - name: primary-pool
-          interfaces:
-            # Use regex to match your USB network interfaces
-            - "^enx.+"
-          # Apply this policy to all nodes
-          nodeSelector:
-            matchLabels: {}
-
-    # This top-level block defines the IP pool for your LoadBalancer services
-    ipamPools:
-      enabled: true
-      pools:
-        - name: primary-pool
-          cidrs:
-            - cidr: "192.168.10.230/28"

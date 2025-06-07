@@ -1,0 +1,54 @@
+# BGP Peering Policy for Cilium 1.17
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeeringPolicy
+metadata:
+  name: bgp-peering-policy
+  namespace: kube-system
+spec:
+  # Apply this policy to nodes with the 'bgp=enabled' label
+  nodeSelector:
+    matchLabels:
+      bgp: enabled
+  virtualRouters:
+    - localASN: 64512  # Your K3s cluster's ASN
+      exportPodCIDR: true
+      serviceSelector:
+        matchExpressions:
+          - key: service.cilium.io/global
+            operator: NotIn
+            values: ["true"]
+      neighbors:
+        - peerAddress: "192.168.1.1/32"  # Your UDM SE's IP
+          peerASN: 64513                  # Your UDM SE's ASN
+---
+# L2 Announcement Policy
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: l2-policy
+  namespace: kube-system
+spec:
+  # Apply to all nodes
+  nodeSelector: {}
+  # Match services that should be announced
+  serviceSelector:
+    matchExpressions:
+      - key: service.cilium.io/global
+        operator: NotIn
+        values: ["true"]
+  # Announce on interfaces matching the regex
+  interfaces:
+    - "^enx.+"
+  # Load balancer IP pool for L2 announcements
+  externalIPs: true
+  loadBalancerIPs: true
+---
+# IP Pool for LoadBalancer services
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: primary-pool
+  namespace: kube-system
+spec:
+  blocks:
+    - cidr: "192.168.10.230/28"
