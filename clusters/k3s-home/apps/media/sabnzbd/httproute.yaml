@@ -11,5 +11,5 @@ spec:
     - "sabnzbd.fletcherlabs.net"
   rules:
     - backendRefs:
-        - name: sabnzbd
+        - name: sabnzbd-main
           port: 8080

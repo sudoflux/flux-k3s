@@ -11,5 +11,5 @@ spec:
     - "radarr.fletcherlabs.net"
   rules:
     - backendRefs:
-        - name: radarr
+        - name: radarr-main
           port: 7878

@@ -11,5 +11,5 @@ spec:
     - "prowlarr.fletcherlabs.net"
   rules:
     - backendRefs:
-        - name: prowlarr
+        - name: prowlarr-main
           port: 9696

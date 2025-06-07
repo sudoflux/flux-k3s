@@ -11,5 +11,5 @@ spec:
     - "lidarr.fletcherlabs.net"
   rules:
     - backendRefs:
-        - name: lidarr
+        - name: lidarr-main
           port: 8686

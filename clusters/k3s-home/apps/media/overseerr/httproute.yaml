@@ -11,5 +11,5 @@ spec:
     - "overseerr.fletcherlabs.net"
   rules:
     - backendRefs:
-        - name: overseerr
+        - name: overseerr-main
           port: 5055

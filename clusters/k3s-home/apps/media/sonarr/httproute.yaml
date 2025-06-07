@@ -11,5 +11,5 @@ spec:
     - "sonarr.fletcherlabs.net"
   rules:
     - backendRefs:
-        - name: sonarr
+        - name: sonarr-main
           port: 8989
