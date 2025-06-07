@@ -12,7 +12,7 @@ spec:
       port: 80
       # This allows any hostname, perfect for a home lab.
       # Or you can use "*.fletcherlabs.net"
-      hostname: "*"
+      hostname: "*.local"
       allowedRoutes:
         namespaces:
           from: All
