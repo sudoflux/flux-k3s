@@ -55,8 +55,7 @@ spec:
       enabled: true
       # This enables the announcement of LoadBalancer IPs
       announce:
-        loadbalancerIPs: true
-      enabled: true
+        loadBalancerIPs: true
       # This defines the peering relationship with your router
       peers:
         - name: udm-se-peer
