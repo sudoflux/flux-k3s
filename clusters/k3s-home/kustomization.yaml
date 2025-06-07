@@ -1,9 +1,0 @@
-# clusters/k3s-home/kustomization.yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  # First, ensure the core Flux components (like the GitRepository) are reconciled.
-  - ./flux-system/
-
-  # Then, apply our orchestrator file which defines all the cluster layers.
-  - cluster-sync.yaml
