@@ -1,67 +1,63 @@
-# clusters/k3s-home/cluster-sync.yaml
-# THIS FILE IS THE MASTER ORCHESTRATOR FOR THE CLUSTER
-
+# clusters/k3s-home/workloads/cluster-sync.yaml
 ---
-# Layer 0: Sources (Helm Repositories, etc.)
+# Layer 0: Sources (No change)
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: cluster-sources # This Kustomization syncs your Helm repo definitions
+  name: cluster-sources
   namespace: flux-system
-spec:
-  interval: 10m
-  path: ./clusters/k3s-home/apps/sources # Correct path from your tree
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  wait: true
-
+spec: # ... (rest is unchanged)
+  path: ./clusters/k3s-home/apps/sources
+# ...
 ---
-# Layer 1: CRDs (The API definitions)
+# Layer 1: CRDs (No change)
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: infra-crds
   namespace: flux-system
-spec:
-  interval: 10m
+spec: # ... (rest is unchanged)
   path: ./clusters/k3s-home/infrastructure/00-gateway-api
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  dependsOn:
-    - name: cluster-sources
-
+# ...
 ---
-# Layer 2: Core Networking (Cilium)
+# --- THE CILIUM SECTION IS NOW SPLIT IN TWO ---
+
+# Layer 2a: Install Cilium Chart
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: infra-cilium
+  name: infra-cilium-chart
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./clusters/k3s-home/infrastructure/01-cilium
+  path: ./clusters/k3s-home/infrastructure/01-cilium-chart
   prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
+  sourceRef: { kind: GitRepository, name: flux-system }
   dependsOn:
     - name: infra-crds
   wait: true
-  timeout: 20m
-  healthChecks: # Keeping your good health checks
-    - apiVersion: apps/v1
-      kind: Deployment
-      name: cilium-operator
-      namespace: kube-system
-    - apiVersion: apps/v1
-      kind: DaemonSet
-      name: cilium
-      namespace: kube-system
+  timeout: 15m # Give Cilium plenty of time to install
+  healthChecks:
+    - { apiVersion: apps/v1, kind: Deployment, name: cilium-operator, namespace: kube-system }
+    - { apiVersion: apps/v1, kind: DaemonSet, name: cilium, namespace: kube-system }
 
+---
+# Layer 2b: Configure Cilium BGP
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infra-cilium-config
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/k3s-home/infrastructure/01-cilium-config
+  prune: true
+  sourceRef: { kind: GitRepository, name: flux-system }
+  dependsOn:
+    # THIS IS THE KEY: This only runs AFTER the chart is installed and healthy.
+    - name: infra-cilium-chart
+
+# --- THE REST OF THE FILE DEPENDS ON THE NEW cilium-config LAYER ---
 ---
 # Layer 3: Runtime Infrastructure (Gateway Instance & Storage)
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -73,11 +69,9 @@ spec:
   interval: 10m
   path: ./clusters/k3s-home/infrastructure-runtime
   prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
+  sourceRef: { kind: GitRepository, name: flux-system }
   dependsOn:
-    - name: infra-cilium
+    - name: infra-cilium-config # Depends on the BGP config being applied
 
 ---
 # Layer 4: Applications
@@ -90,9 +84,7 @@ spec:
   interval: 10m
   path: ./clusters/k3s-home/apps
   prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
+  sourceRef: { kind: GitRepository, name: flux-system }
   dependsOn:
     - name: infra-runtime
   timeout: 5m
