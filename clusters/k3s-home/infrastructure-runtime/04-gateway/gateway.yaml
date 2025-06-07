@@ -10,9 +10,8 @@ spec:
     - name: http
       protocol: HTTP
       port: 80
-      # This allows any hostname, perfect for a home lab.
-      # Or you can use "*.fletcherlabs.net"
-      hostname: "*.local"
+      # This allows any hostname for fletcherlabs.net domain
+      hostname: "*.fletcherlabs.net"
       allowedRoutes:
         namespaces:
           from: All
