@@ -5,8 +5,8 @@ metadata:
   namespace: media
 spec:
   parentRefs:
-    - name: gateway
-      namespace: gateway
+    - name: main-gateway
+      namespace: networking
   hostnames:
     - "jellyfin.fletcherlabs.net"
   rules:

@@ -52,11 +52,12 @@ spec:
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
               privileged: true  # Required for GPU access
-            resources:
-              limits:
-                gpu.intel.com/i915: 1  # Request Intel GPU
-              requests:
-                gpu.intel.com/i915: 1
+            # GPU resources temporarily disabled until Intel plugin is ready
+            # resources:
+            #   limits:
+            #     gpu.intel.com/i915: 1  # Request Intel GPU
+            #   requests:
+            #     gpu.intel.com/i915: 1
     service:
       main:
         controller: main
