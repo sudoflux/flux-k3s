@@ -16,7 +16,6 @@ data:
         
         quality_profiles:
           - name: HD-1080p
-            reset_unmatched_scores: true
         
         custom_formats:
           - trash_ids:
@@ -40,7 +39,6 @@ data:
         
         quality_profiles:
           - name: HD-1080p
-            reset_unmatched_scores: true
         
         custom_formats:
           - trash_ids:
