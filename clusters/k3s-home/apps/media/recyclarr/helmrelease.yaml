@@ -43,6 +43,7 @@ spec:
     service:
       main:
         enabled: false  # Recyclarr doesn't need a service
+        controller: main
     persistence:
       config:
         enabled: true
