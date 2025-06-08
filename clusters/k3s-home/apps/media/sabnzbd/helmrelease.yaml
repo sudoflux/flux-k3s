@@ -28,6 +28,9 @@ spec:
             envFrom:
               - configMapRef:
                   name: rr-env
+            env:
+              - name: HOST_WHITELIST_ENTRIES
+                value: "sabnzbd.fletcherlabs.net"
             securityContext:
               runAsUser: 0
               runAsGroup: 0
