@@ -12,7 +12,7 @@ data:
       # Add your Sonarr instance(s) here
       sonarr-main:
         base_url: http://sonarr:8989
-        api_key: YOUR_SONARR_API_KEY  # Get from Sonarr Settings -> General -> API Key
+        api_key: 75d78cb4a038463fb078f522870773f3
         
         quality_profiles:
           - trash_ids:
@@ -38,7 +38,7 @@ data:
       # Add your Radarr instance(s) here
       radarr-main:
         base_url: http://radarr:7878
-        api_key: YOUR_RADARR_API_KEY  # Get from Radarr Settings -> General -> API Key
+        api_key: 1d388bedec144460bedaf3f8a5d8257a
         
         quality_profiles:
           - trash_ids:
