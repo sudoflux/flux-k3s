@@ -5,21 +5,18 @@ metadata:
   namespace: media
 data:
   recyclarr.yml: |
-    # Recyclarr Configuration Template
-    # For full config guide see: https://recyclarr.dev/wiki/yaml/config-reference/
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
     
     sonarr:
-      # Add your Sonarr instance(s) here
       sonarr-main:
         base_url: http://sonarr:8989
         api_key: 75d78cb4a038463fb078f522870773f3
         
+        delete_old_custom_formats: false
+        
         quality_profiles:
-          - trash_ids:
-              # HD/SD Quality Profiles
-              - d1498e7d189c0395d8da48a89c890f1f  # HD Bluray + WEB
-            quality_profile:
-              name: HD-1080p
+          - name: HD-1080p
+            reset_unmatched_scores: true
         
         custom_formats:
           - trash_ids:
@@ -31,22 +28,19 @@ data:
               - 1c1a4c5e823891c75bc50380a6866f73  # DTS-ES
               - 240770601cc226190c367ef59aba7463  # DD+
               - c2998bd0d90ed5621d8df281e839436e  # DD
-            quality_profiles:
+            assign_scores_to:
               - name: HD-1080p
     
     radarr:
-      # Add your Radarr instance(s) here
       radarr-main:
         base_url: http://radarr:7878
         api_key: 1d388bedec144460bedaf3f8a5d8257a
         
+        delete_old_custom_formats: false
+        
         quality_profiles:
-          - trash_ids:
-              # Movie Quality Profiles
-              - c20f169ef63c5f40c2def54abaf4438e  # Remux-1080p
-              - c20c8647f2746a1f4c4262b0fbbeeeae  # Remux-2160p
-            quality_profile:
-              name: Remux-1080p
+          - name: HD-1080p
+            reset_unmatched_scores: true
         
         custom_formats:
           - trash_ids:
@@ -58,5 +52,16 @@ data:
               - 1c1a4c5e823891c75bc50380a6866f73  # DTS-ES
               - 240770601cc226190c367ef59aba7463  # DD+
               - c2998bd0d90ed5621d8df281e839436e  # DD
-            quality_profiles:
-              - name: Remux-1080p
+              # HDR
+              - e23edd2482476e595fb990b12e7c609c  # DV HDR10
+              - 58d6a88f13e2db7f5059c41047876f00  # DV
+              - 55d53828b9d81cbe20b02efd00aa0efd  # DV HLG
+              - a3e19f8f627608af0211acd02bf89735  # DV SDR
+              - b974a6cd08c1066250f1f177d7aa1225  # HDR10+
+              - dfb86d5941bc9075d6af23b09c2aeecd  # HDR10
+              - e61e28db95d22bedcadf030b8f156d96  # HDR
+              - 2a4d9069cc1fe3242ff9bdaebed239bb  # HDR (undefined)
+              - 08d6d8834ad9ec87b1dc7ec8148e7a1f  # PQ
+              - 9364dd386c9b4a1100dde8264690add7  # HLG
+            assign_scores_to:
+              - name: HD-1080p
