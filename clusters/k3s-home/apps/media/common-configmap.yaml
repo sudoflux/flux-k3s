@@ -6,5 +6,5 @@ metadata:
 data:
   # --- Your common environment variables ---
   TZ: "America/New_York" 
-  PUID: "1000"                       
-  PGID: "1000"                      
+  PUID: "0"                       
+  PGID: "0"                      
