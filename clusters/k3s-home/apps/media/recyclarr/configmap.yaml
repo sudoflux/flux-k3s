@@ -12,26 +12,19 @@ data:
         base_url: http://sonarr:8989
         api_key: !env_var SONARR_API_KEY
         
-        # Use TRaSH Guides pre-built templates
-        include:
-          - template: sonarr-quality-definition-series
-          - template: sonarr-quality-profile-web-1080p
-          - template: sonarr-custom-formats-web-1080p
+        delete_old_custom_formats: false
+        
+        quality_definition:
+          type: series
     
     radarr:
       radarr-main:
         base_url: http://radarr:7878
         api_key: !env_var RADARR_API_KEY
         
-        # Use TRaSH Guides pre-built templates for Remux quality
-        include:
-          - template: radarr-quality-definition-movie
-          - template: radarr-quality-profile-remux-web-1080p
-          - template: radarr-quality-profile-remux-web-2160p
-          - template: radarr-custom-formats-remux-web-1080p
-          - template: radarr-custom-formats-remux-web-2160p
+        delete_old_custom_formats: false
         
-        # Set quality definition to maximum
+        # Simple config - just sync quality definitions
         quality_definition:
           type: movie
-          preferred_ratio: 1.0
+          preferred_ratio: 1.0  # Maximum quality
