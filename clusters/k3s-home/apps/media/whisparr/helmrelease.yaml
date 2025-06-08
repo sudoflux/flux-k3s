@@ -25,6 +25,9 @@ spec:
             image:
               repository: ghcr.io/hotio/whisparr
               tag: v3  # Stable v3 release
+            env:
+              - name: WHISPARR__AUTH__METHOD
+                value: "none"  # Temporarily disable auth
             envFrom:
               - configMapRef:
                   name: rr-env
