@@ -52,3 +52,9 @@ spec:
       data:
         enabled: true
         existingClaim: k3s-data-pvc
+      temp:
+        enabled: true
+        type: emptyDir
+        sizeLimit: 300Gi
+        globalMounts:
+          - path: /downloads/incomplete
