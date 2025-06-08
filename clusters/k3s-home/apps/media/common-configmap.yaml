@@ -9,4 +9,5 @@ data:
   PUID: "1000"                       
   PGID: "1000"
   # Fix s6-overlay permission issues when running as non-root
-  S6_READ_ONLY_ROOT: "1"                      
+  S6_FIX_ATTRS_HIDDEN: "1"
+  S6_VERBOSITY: "1"                      
