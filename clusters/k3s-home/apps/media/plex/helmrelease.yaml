@@ -28,11 +28,7 @@ spec:
             envFrom:
               - configMapRef:
                   name: rr-env
-            env:
-              - name: PLEX_PREFERENCE_customConnections
-                value: "http://plex.fletcherlabs.net"
-              - name: PLEX_PREFERENCE_allowedNetworks
-                value: "192.168.10.0/24,10.0.0.0/24"
+            env: []
             securityContext:
               runAsUser: 0
               runAsGroup: 0
