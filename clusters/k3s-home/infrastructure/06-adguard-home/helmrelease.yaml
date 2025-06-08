@@ -1,0 +1,74 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: adguard-home
+  namespace: networking
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+      reconcileStrategy: ChartVersion
+  values:
+    controllers:
+      main:
+        enabled: true
+        type: deployment
+        replicas: 1
+        containers:
+          main:
+            enabled: true
+            image:
+              repository: adguard/adguardhome
+              tag: latest
+            env:
+              - name: TZ
+                value: "America/New_York"
+    service:
+      main:
+        controller: main
+        type: LoadBalancer
+        loadBalancerIP: 192.168.10.225
+        ports:
+          http:
+            port: 3000
+            targetPort: 3000
+            protocol: TCP
+      dns-tcp:
+        controller: main
+        type: LoadBalancer
+        loadBalancerIP: 192.168.10.225
+        ports:
+          dns-tcp:
+            port: 53
+            targetPort: 53
+            protocol: TCP
+      dns-udp:
+        controller: main
+        type: LoadBalancer
+        loadBalancerIP: 192.168.10.225
+        ports:
+          dns-udp:
+            port: 53
+            targetPort: 53
+            protocol: UDP
+    persistence:
+      config:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /opt/adguardhome/conf
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /opt/adguardhome/work
