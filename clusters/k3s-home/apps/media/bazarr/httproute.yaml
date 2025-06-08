@@ -17,5 +17,5 @@ spec:
   # This defines the routing rule
   rules:
     - backendRefs:
-        - name: bazarr-main # The name of the Bazarr Kubernetes Service
+        - name: bazarr # The name of the Bazarr Kubernetes Service
           port: 6767 # The port of the Bazarr Service

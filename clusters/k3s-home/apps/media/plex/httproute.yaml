@@ -11,5 +11,5 @@ spec:
     - "plex.fletcherlabs.net"
   rules:
     - backendRefs:
-        - name: plex-main
+        - name: plex
           port: 32400
