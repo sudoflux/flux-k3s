@@ -133,6 +133,20 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: whisparr-config-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 100Mi
+  volumeName: whisparr-config-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: recyclarr-config-pvc
   namespace: media
 spec:

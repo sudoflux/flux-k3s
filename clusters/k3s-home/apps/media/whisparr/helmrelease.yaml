@@ -1,0 +1,58 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: whisparr
+  namespace: media
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+      reconcileStrategy: ChartVersion
+  values:
+    controllers:
+      main:
+        enabled: true
+        type: deployment
+        containers:
+          main:
+            enabled: true
+            image:
+              repository: ghcr.io/hotio/whisparr
+              tag: nightly  # Whisparr is still in development
+            envFrom:
+              - configMapRef:
+                  name: rr-env
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+              runAsNonRoot: false
+              readOnlyRootFilesystem: false
+              allowPrivilegeEscalation: true
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 6969
+            targetPort: 6969
+            protocol: TCP
+    ingress:
+      main:
+        enabled: false
+    persistence:
+      config:
+        enabled: true
+        existingClaim: whisparr-config-pvc
+        globalMounts:
+          - path: /config
+      data:
+        enabled: true
+        existingClaim: k3s-data-pvc
+        globalMounts:
+          - path: /data
