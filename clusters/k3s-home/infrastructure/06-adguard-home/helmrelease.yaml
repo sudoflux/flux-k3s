@@ -60,17 +60,11 @@ spec:
     persistence:
       config:
         enabled: true
-        type: persistentVolumeClaim
-        storageClass: local-path
-        accessMode: ReadWriteOnce
-        size: 1Gi
+        existingClaim: adguard-config-pvc
         globalMounts:
           - path: /opt/adguardhome/conf
       data:
         enabled: true
-        type: persistentVolumeClaim
-        storageClass: local-path
-        accessMode: ReadWriteOnce
-        size: 1Gi
+        existingClaim: adguard-data-pvc
         globalMounts:
           - path: /opt/adguardhome/work
