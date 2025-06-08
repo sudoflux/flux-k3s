@@ -24,7 +24,7 @@ spec:
             enabled: true
             image:
               repository: ghcr.io/hotio/whisparr
-              tag: nightly  # Whisparr is still in development
+              tag: v3  # Stable v3 release
             envFrom:
               - configMapRef:
                   name: rr-env
