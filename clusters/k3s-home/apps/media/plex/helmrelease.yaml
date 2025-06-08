@@ -29,8 +29,6 @@ spec:
               - configMapRef:
                   name: rr-env
             env:
-              - name: PLEX_CLAIM
-                value: "claim-xCsPBmZf195dCsgmEmUE"
               - name: ADVERTISE_IP
                 value: "https://plex.fletcherlabs.net:443"
               - name: PLEX_NO_AUTH_NETWORKS
