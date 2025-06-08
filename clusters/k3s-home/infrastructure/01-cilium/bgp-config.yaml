@@ -39,6 +39,8 @@ spec:
   # Announce on interfaces matching the regex
   interfaces:
     - "^enx.+"
+    - "^enp.+"
+    - "^eth.+"
   # Load balancer IP pool for L2 announcements
   externalIPs: true
   loadBalancerIPs: true
