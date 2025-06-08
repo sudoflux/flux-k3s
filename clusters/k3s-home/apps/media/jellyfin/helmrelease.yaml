@@ -19,6 +19,20 @@ spec:
       main:
         enabled: true
         type: deployment
+        pod:
+          nodeSelector:
+            kubernetes.io/hostname: k3s1  # Schedule on node with QuickSync
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - k3s1
+                          - k3s2
         containers:
           main:
             enabled: true
@@ -28,12 +42,21 @@ spec:
             envFrom:
               - configMapRef:
                   name: rr-env
+            env:
+              - name: JELLYFIN_PublishedServerUrl
+                value: "https://jellyfin.fletcherlabs.net"
             securityContext:
               runAsUser: 0
               runAsGroup: 0
               runAsNonRoot: false
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
+              privileged: true  # Required for GPU access
+            resources:
+              limits:
+                gpu.intel.com/i915: 1  # Request Intel GPU
+              requests:
+                gpu.intel.com/i915: 1
     service:
       main:
         controller: main
@@ -52,3 +75,15 @@ spec:
       data:
         enabled: true
         existingClaim: k3s-data-pvc
+      transcode:
+        enabled: true
+        type: emptyDir
+        sizeLimit: 100Gi
+        globalMounts:
+          - path: /transcode
+      cache:
+        enabled: true
+        type: emptyDir
+        sizeLimit: 10Gi
+        globalMounts:
+          - path: /cache

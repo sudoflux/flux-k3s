@@ -35,6 +35,17 @@ spec:
   wait: true # Wait for the HelmRelease to be ready
   timeout: 15m
 ---
+# Layer 2.5: Intel GPU Plugin
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata: { name: infra-intel-gpu, namespace: flux-system }
+spec:
+  interval: 10m
+  path: ./clusters/k3s-home/infrastructure/05-intel-gpu-plugin
+  prune: true
+  sourceRef: { kind: GitRepository, name: flux-system }
+  dependsOn: [{ name: infra-cilium }]
+---
 # Layer 3: Runtime Infrastructure
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -44,7 +55,7 @@ spec:
   path: ./clusters/k3s-home/infrastructure-runtime
   prune: true
   sourceRef: { kind: GitRepository, name: flux-system }
-  dependsOn: [{ name: infra-cilium }] # Now just depends on the one Cilium step
+  dependsOn: [{ name: infra-intel-gpu }] # Depends on Intel GPU plugin
 ---
 # Layer 4: Applications
 apiVersion: kustomize.toolkit.fluxcd.io/v1
