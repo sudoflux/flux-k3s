@@ -1,0 +1,59 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: recyclarr
+  namespace: media
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+      reconcileStrategy: ChartVersion
+  values:
+    controllers:
+      main:
+        enabled: true
+        type: cronjob
+        cronjob:
+          schedule: "0 3 * * *"  # Run at 3 AM daily
+        containers:
+          main:
+            enabled: true
+            image:
+              repository: ghcr.io/recyclarr/recyclarr
+              tag: latest
+            env:
+              - name: TZ
+                value: "America/New_York"
+            command:
+              - /app/recyclarr
+            args:
+              - sync
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+              runAsNonRoot: false
+              readOnlyRootFilesystem: false
+              allowPrivilegeEscalation: true
+    service:
+      main:
+        enabled: false  # Recyclarr doesn't need a service
+    persistence:
+      config:
+        enabled: true
+        existingClaim: recyclarr-config-pvc
+        globalMounts:
+          - path: /config
+      recyclarr-yml:
+        enabled: true
+        type: configMap
+        name: recyclarr-config
+        globalMounts:
+          - path: /config/recyclarr.yml
+            subPath: recyclarr.yml
+            readOnly: true

@@ -127,6 +127,21 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
+  name: recyclarr-config-pv
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    path: /mnt/nvme_storage/recyclarr
+    server: 192.168.10.100
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
   name: k3s-data-pv
 spec:
   capacity:

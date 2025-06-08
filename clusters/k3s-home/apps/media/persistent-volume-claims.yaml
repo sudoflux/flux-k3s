@@ -118,6 +118,20 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: recyclarr-config-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 100Mi
+  volumeName: recyclarr-config-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: k3s-data-pvc
   namespace: media
 spec:

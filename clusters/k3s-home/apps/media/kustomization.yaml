@@ -20,5 +20,6 @@ resources:
   - ./plex
   - ./prowlarr
   - ./radarr
+  - ./recyclarr
   - ./sabnzbd
   - ./sonarr
