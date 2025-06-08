@@ -23,8 +23,8 @@ spec:
           main:
             enabled: true
             image:
-              repository: ghcr.io/hotio/whisparr
-              tag: v3-3.0.0.1038  # Specific v3 version
+              repository: lscr.io/linuxserver/whisparr
+              tag: latest  # LinuxServer Whisparr image
             env:
               - name: WHISPARR__AUTH__METHOD
                 value: "none"  # Temporarily disable auth
