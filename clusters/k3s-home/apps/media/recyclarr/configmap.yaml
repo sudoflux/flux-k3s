@@ -10,7 +10,7 @@ data:
     sonarr:
       sonarr-main:
         base_url: http://sonarr:8989
-        api_key: 75d78cb4a038463fb078f522870773f3
+        api_key: !env_var SONARR_API_KEY
         
         delete_old_custom_formats: false
         
@@ -33,7 +33,7 @@ data:
     radarr:
       radarr-main:
         base_url: http://radarr:7878
-        api_key: 1d388bedec144460bedaf3f8a5d8257a
+        api_key: !env_var RADARR_API_KEY
         
         delete_old_custom_formats: false
         

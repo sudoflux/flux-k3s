@@ -30,6 +30,9 @@ spec:
             env:
               - name: TZ
                 value: "America/New_York"
+            envFrom:
+              - secretRef:
+                  name: recyclarr-api-keys
             command:
               - recyclarr
             args:
