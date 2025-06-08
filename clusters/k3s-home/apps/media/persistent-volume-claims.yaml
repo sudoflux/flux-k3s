@@ -16,6 +16,21 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: jellyfin-config-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 100Mi
+  volumeName: jellyfin-config-pv
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: radarr-config-pvc
   namespace: media
 spec:
