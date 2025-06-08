@@ -20,10 +20,16 @@ spec:
         enabled: true
         type: deployment
         pod:
-          nodeSelector:
-            kubernetes.io/hostname: k3s1  # Schedule on node with QuickSync
           affinity:
             nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - k3s1
+                          - k3s2
               preferredDuringSchedulingIgnoredDuringExecution:
                 - weight: 100
                   preference:
@@ -31,8 +37,7 @@ spec:
                       - key: kubernetes.io/hostname
                         operator: In
                         values:
-                          - k3s1
-                          - k3s2
+                          - k3s1  # Prefer k3s1 over k3s2
         containers:
           main:
             enabled: true
