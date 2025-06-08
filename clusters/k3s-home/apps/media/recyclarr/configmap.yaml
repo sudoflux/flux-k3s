@@ -14,8 +14,13 @@ data:
         
         delete_old_custom_formats: false
         
+        quality_definition:
+          type: series
+          preferred_ratio: 1.0  # Max quality
+        
         quality_profiles:
           - name: HD-1080p
+          - name: WEB-DL-1080p  # Best streaming quality
         
         custom_formats:
           - trash_ids:
@@ -37,8 +42,13 @@ data:
         
         delete_old_custom_formats: false
         
+        quality_definition:
+          type: movie
+          preferred_ratio: 1.0  # Max out quality preferences
+        
         quality_profiles:
-          - name: HD-1080p
+          - name: Remux-2160p  # 4K Remux - Best Quality
+          - name: Remux-1080p  # 1080p Remux - Best 1080p Quality
         
         custom_formats:
           - trash_ids:
@@ -61,5 +71,12 @@ data:
               - 2a4d9069cc1fe3242ff9bdaebed239bb  # HDR (undefined)
               - 08d6d8834ad9ec87b1dc7ec8148e7a1f  # PQ
               - 9364dd386c9b4a1100dde8264690add7  # HLG
+              # Quality
+              - 3a3ff47579026e76d6504ebea39390de  # Remux-1080p
+              - 9f98181fe5a3fbeb0cc29340da2a468a  # Remux-2160p
+              - e7c2fcae07cbada050a0af3357491d7b  # BR-DISK
+              - ed27ebfef2f323e964fb1f61391bcb35  # HD Bluray Tier 01
+              - c20c8647f2746a1f4c4262b0fbbeeeae  # HD Bluray Tier 02
             assign_scores_to:
-              - name: HD-1080p
+              - name: Remux-2160p
+              - name: Remux-1080p
