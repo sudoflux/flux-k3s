@@ -71,12 +71,23 @@ data:
               - 2a4d9069cc1fe3242ff9bdaebed239bb  # HDR (undefined)
               - 08d6d8834ad9ec87b1dc7ec8148e7a1f  # PQ
               - 9364dd386c9b4a1100dde8264690add7  # HLG
-              # Quality
+              # Quality (Good)
               - 3a3ff47579026e76d6504ebea39390de  # Remux-1080p
               - 9f98181fe5a3fbeb0cc29340da2a468a  # Remux-2160p
-              - e7c2fcae07cbada050a0af3357491d7b  # BR-DISK
               - ed27ebfef2f323e964fb1f61391bcb35  # HD Bluray Tier 01
               - c20c8647f2746a1f4c4262b0fbbeeeae  # HD Bluray Tier 02
             assign_scores_to:
               - name: Remux-2160p
               - name: Remux-1080p
+          
+          # Unwanted formats
+          - trash_ids:
+              - ed38b889b31be83fda192888e2286d83  # BR-DISK - Avoid
+              - 90a6f9a284dff5103f6346090e6280c8  # LQ - Low Quality
+              - dc98083864ea246d05a42df0d05f81cc  # x265 (720/1080p) - Often poor quality
+              - b8cd450cbfa689c0259a01d9e29ba3d6  # 3D - Avoid
+            assign_scores_to:
+              - name: Remux-2160p
+                score: -10000  # Never download
+              - name: Remux-1080p
+                score: -10000  # Never download
