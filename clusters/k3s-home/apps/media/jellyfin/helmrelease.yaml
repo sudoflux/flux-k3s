@@ -73,9 +73,13 @@ spec:
       config:
         enabled: true
         existingClaim: jellyfin-config-pvc
+        globalMounts:
+          - path: /config
       data:
         enabled: true
         existingClaim: k3s-data-pvc
+        globalMounts:
+          - path: /data
       transcode:
         enabled: true
         type: emptyDir
