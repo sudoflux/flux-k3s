@@ -60,11 +60,17 @@ spec:
     persistence:
       config:
         enabled: true
-        type: emptyDir
+        type: persistentVolumeClaim
+        storageClass: local-path
+        accessMode: ReadWriteOnce
+        size: 1Gi
         globalMounts:
           - path: /opt/adguardhome/conf
       data:
         enabled: true
-        type: emptyDir
+        type: persistentVolumeClaim
+        storageClass: local-path
+        accessMode: ReadWriteOnce
+        size: 1Gi
         globalMounts:
           - path: /opt/adguardhome/work
