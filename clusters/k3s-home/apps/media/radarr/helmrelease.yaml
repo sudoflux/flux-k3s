@@ -35,6 +35,7 @@ spec:
         ports:
           http:
             port: 7878
+            targetPort: 7878
     ingress:
       main:
         enabled: false
