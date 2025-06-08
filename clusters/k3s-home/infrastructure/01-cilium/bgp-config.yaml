@@ -18,8 +18,8 @@ spec:
             operator: NotIn
             values: ["true"]
       neighbors:
-        - peerAddress: "192.168.1.1/32"  # Your UDM SE's IP
-          peerASN: 64513                  # Your UDM SE's ASN
+        - peerAddress: "192.168.10.1/32"  # Your router's IP on VLAN 10
+          peerASN: 64513                   # Your router's ASN
 ---
 # L2 Announcement Policy
 apiVersion: cilium.io/v2alpha1
@@ -51,4 +51,4 @@ metadata:
   namespace: kube-system
 spec:
   blocks:
-    - cidr: "192.168.10.230/28"
+    - cidr: "192.168.10.224/28"  # .224-.239
