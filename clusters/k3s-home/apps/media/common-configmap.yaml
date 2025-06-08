@@ -6,5 +6,7 @@ metadata:
 data:
   # --- Your common environment variables ---
   TZ: "America/New_York" 
-  PUID: "0"                       
-  PGID: "0"                      
+  PUID: "1000"                       
+  PGID: "1000"
+  # Fix s6-overlay permission issues when running as non-root
+  S6_READ_ONLY_ROOT: "1"                      
