@@ -28,6 +28,13 @@ spec:
             envFrom:
               - configMapRef:
                   name: rr-env
+            env:
+              - name: PLEX_CLAIM
+                value: "claim-xCsPBmZf195dCsgmEmUE"
+              - name: ADVERTISE_IP
+                value: "https://plex.fletcherlabs.net:443"
+              - name: PLEX_NO_AUTH_NETWORKS
+                value: "192.168.10.0/24"
             securityContext:
               runAsUser: 0
               runAsGroup: 0
@@ -42,6 +49,7 @@ spec:
           http:
             port: 32400
             targetPort: 32400
+            protocol: TCP
     ingress:
       main:
         enabled: false
