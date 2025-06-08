@@ -28,6 +28,12 @@ spec:
             envFrom:
               - configMapRef:
                   name: rr-env
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+              runAsNonRoot: false
+              readOnlyRootFilesystem: false
+              allowPrivilegeEscalation: true
     service:
       main:
         controller: main
