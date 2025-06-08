@@ -28,27 +28,6 @@ spec:
             envFrom:
               - configMapRef:
                   name: rr-env
-            lifecycle:
-              postStart:
-                exec:
-                  command:
-                    - /bin/sh
-                    - -c
-                    - |
-                      # Wait for SABnzbd to create initial config
-                      while [ ! -f "/config/sabnzbd.ini" ]; do
-                        echo "Waiting for sabnzbd.ini..."
-                        sleep 2
-                      done
-                      sleep 5
-                      # Update host_whitelist in the [misc] section
-                      if grep -q "^host_whitelist =" /config/sabnzbd.ini; then
-                        sed -i '/^\[misc\]/,/^\[/{s/^host_whitelist = .*/host_whitelist = sabnzbd.fletcherlabs.net,/}' /config/sabnzbd.ini
-                      else
-                        sed -i '/^\[misc\]/a host_whitelist = sabnzbd.fletcherlabs.net,' /config/sabnzbd.ini
-                      fi
-                      # Restart SABnzbd to apply changes
-                      pkill -HUP -f sabnzbd || true
             securityContext:
               runAsUser: 0
               runAsGroup: 0
