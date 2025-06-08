@@ -24,7 +24,7 @@ spec:
             enabled: true
             image:
               repository: ghcr.io/hotio/whisparr
-              tag: nightly  # Development version with latest features
+              tag: v3-3.0.0.1038  # Specific v3 version
             env:
               - name: WHISPARR__AUTH__METHOD
                 value: "none"  # Temporarily disable auth
