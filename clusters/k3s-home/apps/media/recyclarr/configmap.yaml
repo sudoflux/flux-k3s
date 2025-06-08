@@ -12,82 +12,26 @@ data:
         base_url: http://sonarr:8989
         api_key: !env_var SONARR_API_KEY
         
-        delete_old_custom_formats: false
-        
-        quality_definition:
-          type: series
-          preferred_ratio: 1.0  # Max quality
-        
-        quality_profiles:
-          - name: HD-1080p
-          - name: WEB-DL-1080p  # Best streaming quality
-        
-        custom_formats:
-          - trash_ids:
-              # Audio
-              - 3cafb66171b47f226146a0770576870f  # TrueHD ATMOS
-              - 496f355514737f7d83bf7aa4d24f8169  # TrueHD
-              - 2f22d89048b01681dde8afe203bf2e95  # DTS X
-              - 570bc9ebecd92723d2d21500f4be314c  # DD+/E-AC-3 ATMOS
-              - 1c1a4c5e823891c75bc50380a6866f73  # DTS-ES
-              - 240770601cc226190c367ef59aba7463  # DD+
-              - c2998bd0d90ed5621d8df281e839436e  # DD
-            assign_scores_to:
-              - name: HD-1080p
+        # Use TRaSH Guides pre-built templates
+        include:
+          - template: sonarr-quality-definition-series
+          - template: sonarr-quality-profile-web-1080p
+          - template: sonarr-custom-formats-web-1080p
     
     radarr:
       radarr-main:
         base_url: http://radarr:7878
         api_key: !env_var RADARR_API_KEY
         
-        delete_old_custom_formats: false
+        # Use TRaSH Guides pre-built templates for Remux quality
+        include:
+          - template: radarr-quality-definition-movie
+          - template: radarr-quality-profile-remux-1080p
+          - template: radarr-quality-profile-remux-2160p
+          - template: radarr-custom-formats-remux-1080p
+          - template: radarr-custom-formats-remux-2160p
         
+        # Set quality definition to maximum
         quality_definition:
           type: movie
-          preferred_ratio: 1.0  # Max out quality preferences
-        
-        quality_profiles:
-          - name: Remux-2160p  # 4K Remux - Best Quality
-          - name: Remux-1080p  # 1080p Remux - Best 1080p Quality
-        
-        custom_formats:
-          - trash_ids:
-              # Audio
-              - 3cafb66171b47f226146a0770576870f  # TrueHD ATMOS
-              - 496f355514737f7d83bf7aa4d24f8169  # TrueHD
-              - 2f22d89048b01681dde8afe203bf2e95  # DTS X
-              - 570bc9ebecd92723d2d21500f4be314c  # DD+/E-AC-3 ATMOS
-              - 1c1a4c5e823891c75bc50380a6866f73  # DTS-ES
-              - 240770601cc226190c367ef59aba7463  # DD+
-              - c2998bd0d90ed5621d8df281e839436e  # DD
-              # HDR
-              - e23edd2482476e595fb990b12e7c609c  # DV HDR10
-              - 58d6a88f13e2db7f5059c41047876f00  # DV
-              - 55d53828b9d81cbe20b02efd00aa0efd  # DV HLG
-              - a3e19f8f627608af0211acd02bf89735  # DV SDR
-              - b974a6cd08c1066250f1f177d7aa1225  # HDR10+
-              - dfb86d5941bc9075d6af23b09c2aeecd  # HDR10
-              - e61e28db95d22bedcadf030b8f156d96  # HDR
-              - 2a4d9069cc1fe3242ff9bdaebed239bb  # HDR (undefined)
-              - 08d6d8834ad9ec87b1dc7ec8148e7a1f  # PQ
-              - 9364dd386c9b4a1100dde8264690add7  # HLG
-              # Quality (Good)
-              - 3a3ff47579026e76d6504ebea39390de  # Remux-1080p
-              - 9f98181fe5a3fbeb0cc29340da2a468a  # Remux-2160p
-              - ed27ebfef2f323e964fb1f61391bcb35  # HD Bluray Tier 01
-              - c20c8647f2746a1f4c4262b0fbbeeeae  # HD Bluray Tier 02
-            assign_scores_to:
-              - name: Remux-2160p
-              - name: Remux-1080p
-          
-          # Unwanted formats
-          - trash_ids:
-              - ed38b889b31be83fda192888e2286d83  # BR-DISK - Avoid
-              - 90a6f9a284dff5103f6346090e6280c8  # LQ - Low Quality
-              - dc98083864ea246d05a42df0d05f81cc  # x265 (720/1080p) - Often poor quality
-              - b8cd450cbfa689c0259a01d9e29ba3d6  # 3D - Avoid
-            assign_scores_to:
-              - name: Remux-2160p
-                score: -10000  # Never download
-              - name: Remux-1080p
-                score: -10000  # Never download
+          preferred_ratio: 1.0
