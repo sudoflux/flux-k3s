@@ -19,6 +19,9 @@ spec:
       main:
         enabled: true
         type: deployment
+        pod:
+          nodeSelector:
+            kubernetes.io/hostname: k3s1  # Run on Dell OptiPlex for better performance
         containers:
           main:
             enabled: true
@@ -37,6 +40,13 @@ spec:
               runAsNonRoot: false
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 2000m
+                memory: 1Gi
     service:
       main:
         controller: main
