@@ -19,9 +19,6 @@ spec:
       main:
         enabled: true
         type: deployment
-        pod:
-          nodeSelector:
-            kubernetes.io/hostname: k3s1  # Run on Dell OptiPlex for better performance
         containers:
           main:
             enabled: true
