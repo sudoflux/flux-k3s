@@ -19,7 +19,6 @@ spec:
       main:
         enabled: true
         type: deployment
-        replicas: 0  # Temporarily scale down to delete config
         containers:
           main:
             enabled: true
