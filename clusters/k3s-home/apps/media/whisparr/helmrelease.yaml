@@ -28,6 +28,10 @@ spec:
             env:
               - name: WHISPARR__UPDATE__BRANCH
                 value: "nightly"  # Match nightly tag
+              - name: WHISPARR__AUTH__METHOD
+                value: "none"  # Disable authentication to reset
+              - name: WHISPARR__AUTH__REQUIRED
+                value: "disabled"  # Disable authentication requirement
             envFrom:
               - configMapRef:
                   name: rr-env
