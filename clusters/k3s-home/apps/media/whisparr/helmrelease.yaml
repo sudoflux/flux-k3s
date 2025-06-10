@@ -24,10 +24,12 @@ spec:
             enabled: true
             image:
               repository: ghcr.io/hotio/whisparr
-              tag: v3  # Hotio Whisparr v3
+              tag: nightly  # Switch to nightly build to test path fixes
             env:
               - name: WHISPARR__AUTH__METHOD
                 value: "none"  # Temporarily disable auth
+              - name: WHISPARR__UPDATE__BRANCH
+                value: "nightly"  # Match nightly tag
             envFrom:
               - configMapRef:
                   name: rr-env
