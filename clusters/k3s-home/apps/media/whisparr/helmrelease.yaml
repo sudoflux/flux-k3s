@@ -30,6 +30,8 @@ spec:
                 value: "1000"
               - name: PGID
                 value: "1000"
+              - name: TZ
+                value: "America/New_York"
             envFrom:
               - configMapRef:
                   name: rr-env
