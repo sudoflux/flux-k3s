@@ -19,19 +19,18 @@ spec:
       main:
         enabled: true
         type: deployment
+        replicas: 0  # Temporarily scale down to delete config
         containers:
           main:
             enabled: true
             image:
               repository: ghcr.io/hotio/whisparr
-              tag: nightly  # Switch to nightly build to test path fixes
+              tag: v3  # Switch back to stable v3
             env:
-              - name: WHISPARR__UPDATE__BRANCH
-                value: "nightly"  # Match nightly tag
-              - name: WHISPARR__AUTH__METHOD
-                value: "none"  # Disable authentication to reset
-              - name: WHISPARR__AUTH__REQUIRED
-                value: "disabled"  # Disable authentication requirement
+              - name: PUID
+                value: "1000"
+              - name: PGID
+                value: "1000"
             envFrom:
               - configMapRef:
                   name: rr-env
