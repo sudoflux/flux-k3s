@@ -26,10 +26,12 @@ spec:
               repository: ghcr.io/hotio/whisparr
               tag: nightly  # Switch to nightly build to test path fixes
             env:
-              - name: WHISPARR__AUTH__METHOD
-                value: "none"  # Temporarily disable auth
               - name: WHISPARR__UPDATE__BRANCH
                 value: "nightly"  # Match nightly tag
+              - name: WHISPARR__AUTH__METHOD
+                value: "forms"  # Enable form-based authentication
+              - name: WHISPARR__AUTH__REQUIRED
+                value: "enabled"  # Require authentication
             envFrom:
               - configMapRef:
                   name: rr-env
