@@ -57,10 +57,10 @@ spec:
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
               privileged: true  # Required for GPU access
-            # GPU resources temporarily disabled until Intel plugin is ready
+            # GPU resources will be enabled when Intel plugin is fixed
             # resources:
             #   limits:
-            #     gpu.intel.com/i915: 1  # Request Intel GPU
+            #     gpu.intel.com/i915: 1
             #   requests:
             #     gpu.intel.com/i915: 1
     service:
@@ -97,3 +97,10 @@ spec:
         sizeLimit: 10Gi
         globalMounts:
           - path: /cache
+      # GPU device mounts for QuickSync
+      dri:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/dri
+        globalMounts:
+          - path: /dev/dri

@@ -19,6 +19,25 @@ spec:
       main:
         enabled: true
         type: deployment
+        pod:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - k3s1
+                          - k3s2
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 50
+                  preference:
+                    matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - k3s2  # Prefer k3s2 to balance with Jellyfin on k3s1
         containers:
           main:
             enabled: true
