@@ -28,7 +28,7 @@ spec:
             enabled: true
             image:
               repository: ghcr.io/hotio/whisparr
-              tag: v3  # Switch back to stable v3
+              tag: nightly  # Using nightly for latest features
             env:
               - name: PUID
                 value: "1000"
