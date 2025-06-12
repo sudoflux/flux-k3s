@@ -1,14 +1,27 @@
-# Cilium BGP Configuration
+# K3s Flux GitOps Repository
 
-This directory contains the Cilium CNI configuration with BGP support for LoadBalancer services.
+This repository contains the Flux configuration for a K3s cluster using Cilium as the CNI with BGP and Gateway API support.
+
+## Cluster Configuration
+
+### Nodes
+- **k3s-master1** (R730): Control plane + storage node (192.168.10.30)
+- **k3s1** (OptiPlex): Light compute worker with Intel QuickSync (192.168.10.21)
+- **k3s2** (OptiPlex): Light compute worker with Intel QuickSync (192.168.10.23)
+- **k3s3** (R630): GPU compute worker with NVIDIA Tesla T4, dual Xeon 2697A v4, 384GB RAM (192.168.10.31)
+
+### Important K3s Configuration
+K3s must be configured with `--disable=servicelb` to prevent conflicts with Cilium's load balancer functionality. This is set in `/etc/systemd/system/k3s.service` on the master node.
 
 ## Overview
 
 Cilium is configured to:
 - Act as the primary CNI for the k3s cluster
-- Provide BGP peering with your router (UDM-SE)
+- Replace kube-proxy entirely
+- Provide BGP peering with your router
 - Manage LoadBalancer IP assignments from a dedicated pool
-- Advertise service IPs via BGP
+- Handle Gateway API for ingress routing
+- Provide L2 announcements for local network
 
 ## Configuration Files
 
@@ -43,14 +56,14 @@ Your router (UDM-SE) must be configured with:
 
 ## IP Address Allocation
 
-The LoadBalancer IP pool is configured with range: `192.168.90.40` - `192.168.90.55`
+The LoadBalancer IP pool is configured with range: `192.168.10.224` - `192.168.10.239` (192.168.10.224/28)
 
 Current allocation:
-- Services will be dynamically assigned IPs from the pool
-- All ingresses share IPs based on the configured mode (shared/dedicated)
-- Access services via DNS names that resolve to the LoadBalancer IPs
+- Gateway API LoadBalancer: `192.168.10.224`
+- Services are accessed via Gateway API HTTPRoutes
+- All services use `*.fletcherlabs.net` domains
 
-**Note**: Media apps use ClusterIP services internally and are exposed via Cilium ingress controller for HTTP/HTTPS access with proper domain routing.
+**Note**: Media apps use ClusterIP services internally and are exposed via Gateway API for HTTP/HTTPS access with proper domain routing.
 
 ## Troubleshooting
 
@@ -92,37 +105,32 @@ show ip bgp routes
 
 ## Service Configuration
 
-Media apps use ClusterIP services and are exposed via Cilium ingress:
+Media apps use ClusterIP services and are exposed via Gateway API:
 
 ```yaml
-# Service (ClusterIP - default)
-service:
-  main:
-    controller: main
-    ports:
-      http:
-        port: 8080
-
-# Ingress
-ingress:
-  main:
-    enabled: true
-    className: cilium
-    annotations:
-      cilium.io/preserve-service-port: "true"
-    hosts:
-      - host: app.example.com
-        paths:
-          - path: /
-            service:
-              name: app-service
-              port: 8080
+# HTTPRoute example
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: app-http-route
+  namespace: media
+spec:
+  parentRefs:
+    - name: main-gateway
+      namespace: networking
+  hostnames:
+    - "app.fletcherlabs.net"
+  rules:
+    - backendRefs:
+        - name: app-service
+          port: 8080
 ```
 
-For dedicated LoadBalancer services (if needed), use:
-```yaml
-service:
-  main:
-    type: LoadBalancer
-    # Cilium will automatically assign an IP from the pool
-```
+## Recent Changes
+
+### 2025-06-12
+- Added k3s3 node (R630) with NVIDIA Tesla T4 GPU
+- Configured local storage on k3s3 with tiered approach (Optane, NVMe, SAS SSDs)
+- Migrated Whisparr to k3s3 with Optane storage for better performance
+- Disabled K3s ServiceLB to allow Cilium to handle all LoadBalancer services
+- Fixed Gateway API connectivity issues
