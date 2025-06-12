@@ -28,7 +28,7 @@ spec:
             enabled: true
             image:
               repository: ghcr.io/hotio/whisparr
-              tag: latest
+              tag: v3
             env:
               - name: PUID
                 value: "1000"
