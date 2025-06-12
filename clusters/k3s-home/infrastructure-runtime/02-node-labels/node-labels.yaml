@@ -1,0 +1,42 @@
+# Node labeling manifest
+# This file documents the expected node labels for proper workload scheduling
+# Apply these labels manually to your nodes:
+#
+# For k3s1 and k3s2 (OptiPlex nodes):
+# kubectl label nodes k3s1 node-type=compute workload=light
+# kubectl label nodes k3s2 node-type=compute workload=light
+#
+# For k3s3 (GPU node):
+# kubectl label nodes k3s3 node-type=gpu gpu=nvidia
+#
+# For r730 (Storage node):
+# kubectl label nodes r730 node-type=storage storage=high-performance
+#
+# Optional: Add taints to restrict workloads
+# kubectl taint nodes k3s3 gpu=nvidia:NoSchedule
+# kubectl taint nodes r730 storage=high-performance:NoSchedule
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-labels-reference
+  namespace: kube-system
+data:
+  labels.yaml: |
+    nodes:
+      k3s1:
+        labels:
+          node-type: compute
+          workload: light
+      k3s2:
+        labels:
+          node-type: compute
+          workload: light
+      k3s3:
+        labels:
+          node-type: gpu
+          gpu: nvidia
+      r730:
+        labels:
+          node-type: storage
+          storage: high-performance
