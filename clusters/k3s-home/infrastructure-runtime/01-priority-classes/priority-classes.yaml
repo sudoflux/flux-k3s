@@ -1,0 +1,41 @@
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: critical
+value: 1000
+globalDefault: false
+description: "Priority class for critical workloads like media servers"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 900
+globalDefault: false
+description: "Priority class for important workloads like indexers"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: medium-priority
+value: 700
+globalDefault: true
+description: "Default priority class for regular workloads"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: low-priority
+value: 500
+globalDefault: false
+description: "Priority class for non-critical workloads"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: batch
+value: 200
+globalDefault: false
+description: "Priority class for batch jobs and maintenance tasks"
+preemptionPolicy: Never  # Don't preempt other pods
