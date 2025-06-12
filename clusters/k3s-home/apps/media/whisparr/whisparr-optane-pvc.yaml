@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: whisparr-optane-config-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-ssd
+  resources:
+    requests:
+      storage: 50Gi  # Generous space for 30k files and database growth
+  selector:
+    matchLabels:
+      tier: ultra-performance
+      storage-type: optane
+      node: k3s3

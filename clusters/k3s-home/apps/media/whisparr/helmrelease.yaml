@@ -19,6 +19,10 @@ spec:
       main:
         enabled: true
         type: deployment
+        pod:
+          nodeSelector:
+            kubernetes.io/hostname: k3s3  # Run on k3s3 for best performance
+          priorityClassName: high-priority
         containers:
           main:
             enabled: true
@@ -62,7 +66,7 @@ spec:
     persistence:
       config:
         enabled: true
-        existingClaim: whisparr-config-pvc
+        existingClaim: whisparr-optane-config-pvc
         globalMounts:
           - path: /config
       data:

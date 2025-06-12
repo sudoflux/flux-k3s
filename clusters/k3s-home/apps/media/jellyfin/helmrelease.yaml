@@ -20,24 +20,14 @@ spec:
         enabled: true
         type: deployment
         pod:
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values:
-                          - k3s1
-                          - k3s2
-              preferredDuringSchedulingIgnoredDuringExecution:
-                - weight: 100
-                  preference:
-                    matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values:
-                          - k3s1  # Prefer k3s1 over k3s2
+          priorityClassName: critical  # High priority for media server
+          nodeSelector:
+            gpu: nvidia  # Run on the GPU node
+          tolerations:
+            - key: gpu
+              operator: Equal
+              value: nvidia
+              effect: NoSchedule
         containers:
           main:
             enabled: true
@@ -57,12 +47,15 @@ spec:
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
               privileged: true  # Required for GPU access
-            # GPU resources will be enabled when Intel plugin is fixed
-            # resources:
-            #   limits:
-            #     gpu.intel.com/i915: 1
-            #   requests:
-            #     gpu.intel.com/i915: 1
+            resources:
+              requests:
+                memory: 2Gi
+                cpu: 1
+                nvidia.com/gpu: 1  # Request 1 NVIDIA GPU
+              limits:
+                memory: 8Gi
+                cpu: 4
+                nvidia.com/gpu: 1  # Limit to 1 NVIDIA GPU
     service:
       main:
         controller: main
@@ -97,10 +90,28 @@ spec:
         sizeLimit: 10Gi
         globalMounts:
           - path: /cache
-      # GPU device mounts for QuickSync
-      dri:
+      # NVIDIA GPU device mounts
+      nvidia:
         enabled: true
         type: hostPath
-        hostPath: /dev/dri
+        hostPath: /dev/nvidia0
         globalMounts:
-          - path: /dev/dri
+          - path: /dev/nvidia0
+      nvidia-uvm:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/nvidiactl
+        globalMounts:
+          - path: /dev/nvidiactl
+      nvidia-uvm-tools:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/nvidia-uvm
+        globalMounts:
+          - path: /dev/nvidia-uvm
+      nvidia-uvm-modeset:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/nvidia-uvm-tools
+        globalMounts:
+          - path: /dev/nvidia-uvm-tools

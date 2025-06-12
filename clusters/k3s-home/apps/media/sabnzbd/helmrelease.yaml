@@ -20,16 +20,13 @@ spec:
         enabled: true
         type: deployment
         pod:
-          affinity:
-            nodeAffinity:
-              preferredDuringSchedulingIgnoredDuringExecution:
-                - weight: 100
-                  preference:
-                    matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values:
-                          - k3s3  # Prefer k3s3 for local NFS access
+          nodeSelector:
+            node-type: storage  # Run on R730 storage node
+          tolerations:
+            - key: storage
+              operator: Equal
+              value: high-performance
+              effect: NoSchedule
         containers:
           main:
             enabled: true
@@ -45,6 +42,13 @@ spec:
               runAsNonRoot: false
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
+            resources:
+              requests:
+                memory: 1Gi
+                cpu: 2
+              limits:
+                memory: 4Gi
+                cpu: 6  # Allow high CPU for unpacking
     service:
       main:
         controller: main

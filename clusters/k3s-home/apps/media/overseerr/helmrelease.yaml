@@ -20,16 +20,21 @@ spec:
         enabled: true
         type: deployment
         pod:
+          nodeSelector:
+            node-type: compute  # Run on OptiPlex nodes
+            workload: light
           affinity:
-            nodeAffinity:
+            podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
                 - weight: 100
-                  preference:
-                    matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values:
-                          - k3s3
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app.kubernetes.io/name
+                          operator: In
+                          values:
+                            - plex  # Spread from Plex
+                    topologyKey: kubernetes.io/hostname
         containers:
           main:
             enabled: true
@@ -45,6 +50,13 @@ spec:
               runAsNonRoot: false
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
+            resources:
+              requests:
+                memory: 256Mi
+                cpu: 100m
+              limits:
+                memory: 1Gi
+                cpu: 1
     service:
       main:
         controller: main

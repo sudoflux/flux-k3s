@@ -20,7 +20,12 @@
       "Bash(rm:*)",
       "Bash(ping:*)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(ssh:*)",
+      "Bash(chmod:*)",
+      "Bash(./reset-whisparr.sh:*)",
+      "Bash(/tmp/whisparr_quality_cleanup.sh:*)",
+      "Bash(kustomize build:*)"
     ],
     "deny": []
   }

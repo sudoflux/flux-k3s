@@ -4,3 +4,4 @@ resources:
   - helmrelease.yaml
   - httproute.yaml
   - nodeport-service.yaml
+  - whisparr-optane-pvc.yaml

@@ -20,24 +20,22 @@ spec:
         enabled: true
         type: deployment
         pod:
+          priorityClassName: critical  # High priority for media server
+          nodeSelector:
+            node-type: compute  # Run on OptiPlex nodes
+            workload: light
           affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values:
-                          - k3s1
-                          - k3s2
+            podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
-                - weight: 50
-                  preference:
-                    matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: In
-                        values:
-                          - k3s2  # Prefer k3s2 to balance with Jellyfin on k3s1
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app.kubernetes.io/name
+                          operator: In
+                          values:
+                            - overseerr  # Spread from other light workloads
+                    topologyKey: kubernetes.io/hostname
         containers:
           main:
             enabled: true
@@ -54,6 +52,13 @@ spec:
               runAsNonRoot: false
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
+            resources:
+              requests:
+                memory: 2Gi
+                cpu: 1
+              limits:
+                memory: 6Gi
+                cpu: 3
     service:
       main:
         controller: main
