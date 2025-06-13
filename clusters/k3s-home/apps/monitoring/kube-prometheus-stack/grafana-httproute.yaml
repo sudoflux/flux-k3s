@@ -5,9 +5,8 @@ metadata:
   namespace: monitoring
 spec:
   parentRefs:
-    - name: gateway
-      namespace: gateway
-      sectionName: https
+    - name: main-gateway
+      namespace: networking
   hostnames:
     - "grafana.fletcherlabs.net"
   rules:
