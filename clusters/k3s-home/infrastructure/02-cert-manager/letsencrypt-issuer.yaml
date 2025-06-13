@@ -10,8 +10,8 @@ spec:
       name: letsencrypt-staging-key
     solvers:
     - http01:
-        ingress:
-          ingressClassName: cilium
+        gateway:
+          controllerName: gateway.networking.k8s.io/cilium
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -25,5 +25,5 @@ spec:
       name: letsencrypt-prod-key
     solvers:
     - http01:
-        ingress:
-          ingressClassName: cilium
+        gateway:
+          controllerName: gateway.networking.k8s.io/cilium
