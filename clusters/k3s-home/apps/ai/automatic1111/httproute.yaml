@@ -18,5 +18,5 @@ spec:
             value: /
       backendRefs:
         - name: automatic1111
-          port: 8080
+          port: 7860
           weight: 1
