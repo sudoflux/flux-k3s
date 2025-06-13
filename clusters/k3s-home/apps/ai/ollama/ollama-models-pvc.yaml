@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models-pvc
+  namespace: ai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-ssd
+  resources:
+    requests:
+      storage: 200Gi  # Space for multiple models
+  selector:
+    matchLabels:
+      tier: bulk-storage
+      storage-type: sas
+      node: k3s3

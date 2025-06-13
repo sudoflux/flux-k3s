@@ -5,4 +5,5 @@ resources:
   - ./media
   - ./monitoring
   - ./media-kustomization.yaml
+  - ./ai
   
