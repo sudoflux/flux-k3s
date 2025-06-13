@@ -8,7 +8,7 @@ This repository contains the Flux GitOps configuration for a K3s homelab cluster
 - **k3s-master1** (VM on R730): Control plane (192.168.10.30)
 - **k3s1** (OptiPlex): Light compute worker with Intel QuickSync (192.168.10.21)
 - **k3s2** (OptiPlex): Light compute worker with Intel QuickSync (192.168.10.23)
-- **k3s3** (R630): GPU compute worker with NVIDIA RTX 4090, dual Xeon E5-2697A v4, 384GB RAM (192.168.10.31)
+- **k3s3** (R630): GPU compute worker with NVIDIA Tesla T4, dual Xeon E5-2697A v4, 384GB RAM (192.168.10.31)
 
 ### Storage
 - **R730**: NFS storage provider
@@ -221,7 +221,7 @@ spec:
    - `longhorn-nvme`: High-performance NVMe storage
    - `longhorn-sas-ssd`: Standard SSD storage
    - `longhorn-replicated`: Replicated across multiple nodes
-4. **GPU Sharing**: All AI workloads share the RTX 4090 via time-slicing
+4. **GPU Sharing**: All AI workloads share the Tesla T4 via time-slicing
 
 ## Documentation
 
