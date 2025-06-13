@@ -28,7 +28,7 @@ spec:
           main:
             enabled: true
             image:
-              repository: ghcr.io/gngpp/stable-diffusion-webui
+              repository: universonic/stable-diffusion-webui
               tag: latest
             args:
               - "--listen"
