@@ -10,10 +10,9 @@ allowVolumeExpansion: true
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 parameters:
-  numberOfReplicas: "2"  # Only k3s3 has Optane, so we can't do 3 replicas
+  numberOfReplicas: "1"  # Only k3s3 has Optane
   staleReplicaTimeout: "2880"  # 48 hours
   diskSelector: "optane"
-  nodeSelector: "k3s3"
   dataLocality: "strict-local"  # Keep data local for maximum performance
   fsType: "ext4"
 ---
@@ -50,7 +49,6 @@ parameters:
   numberOfReplicas: "2"  # Replicas will be on other nodes' NVMe
   staleReplicaTimeout: "2880"
   diskSelector: "sas-ssd"
-  nodeSelector: "k3s3"  # Initial volume placement
   dataLocality: "best-effort"
   fsType: "ext4"
 ---
