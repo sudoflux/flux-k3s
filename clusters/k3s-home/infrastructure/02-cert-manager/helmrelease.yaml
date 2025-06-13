@@ -19,8 +19,6 @@ spec:
       enabled: true
       servicemonitor:
         enabled: true
-    webhook:
-      timeoutSeconds: 30
     # Ensure cert-manager works with our Pod Security Standards
     global:
       podSecurityPolicy:
@@ -35,6 +33,7 @@ spec:
         memory: 256Mi
         cpu: 200m
     webhook:
+      timeoutSeconds: 30
       resources:
         requests:
           memory: 64Mi
