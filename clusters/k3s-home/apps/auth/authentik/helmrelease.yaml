@@ -1,0 +1,85 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  interval: 30m
+  dependsOn:
+    - name: authentik-postgresql
+      namespace: authentik
+    - name: authentik-redis
+      namespace: authentik
+  chart:
+    spec:
+      chart: authentik
+      version: "2023.10.7"
+      sourceRef:
+        kind: HelmRepository
+        name: authentik
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  valuesFrom:
+    - kind: Secret
+      name: authentik-secret
+      valuesKey: values.yaml
+  values:
+    global:
+      domain: authentik.fletcherlabs.net
+      
+    authentik:
+      secret_key: "${AUTHENTIK_SECRET_KEY}"
+      error_reporting:
+        enabled: false
+      postgresql:
+        host: authentik-postgresql
+        name: authentik
+        user: authentik
+        password: "${AUTHENTIK_POSTGRES_PASSWORD}"
+      redis:
+        host: authentik-redis-master
+        password: "${AUTHENTIK_REDIS_PASSWORD}"
+      email:
+        host: ""
+        port: 587
+        use_tls: false
+        use_ssl: false
+        from: "authentik@fletcherlabs.net"
+        
+    server:
+      ingress:
+        enabled: false  # We'll use Gateway API instead
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: false
+      resources:
+        server:
+          requests:
+            cpu: 50m
+            memory: 512Mi
+          limits:
+            memory: 768Mi
+            
+    worker:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+          
+    postgresql:
+      enabled: false  # Using external PostgreSQL
+      
+    redis:
+      enabled: false  # Using external Redis

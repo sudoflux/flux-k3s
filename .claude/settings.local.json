@@ -27,7 +27,9 @@
       "Bash(/tmp/whisparr_quality_cleanup.sh:*)",
       "Bash(kustomize build:*)",
       "Bash(true)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(openssl rand:*)"
     ],
     "deny": []
   }

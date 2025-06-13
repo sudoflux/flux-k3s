@@ -1,0 +1,39 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: authentik-redis
+  namespace: authentik
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: redis
+      version: "18.6.1"
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    architecture: standalone
+    auth:
+      enabled: true
+      password: "${AUTHENTIK_REDIS_PASSWORD}"
+    master:
+      persistence:
+        enabled: false
+      resources:
+        limits:
+          memory: 128Mi
+        requests:
+          memory: 64Mi
+          cpu: 10m
