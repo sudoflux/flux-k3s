@@ -120,9 +120,24 @@ All apps deployed via Flux GitOps from `/clusters/k3s-home/apps/media/`
 - **Overseerr**: Request management
 - **Recyclarr**: Automated trash guide updates
 
+### AI Stack
+All apps deployed via Flux GitOps from `/clusters/k3s-home/apps/ai/`
+
+- **Ollama**: LLM inference server (API at ollama.fletcherlabs.net)
+  - Running llama3.2:3b model
+  - GPU accelerated on Tesla T4
+  - 200GB storage for models
+- **Open WebUI**: Chat interface for Ollama (ai.fletcherlabs.net)
+  - User-friendly web interface for LLM interaction
+  - Connects to Ollama backend
+- **Automatic1111**: Stable Diffusion WebUI (sd.fletcherlabs.net)
+  - Image generation with GPU acceleration
+  - 100GB storage for SD models, 50GB for outputs
+  - Configured with xformers and medvram optimization
+
 ### Infrastructure Components
 - **Cilium**: CNI and service mesh
-- **NVIDIA Device Plugin**: GPU support for k3s3
+- **NVIDIA Device Plugin**: GPU support for k3s3 with time-slicing
 - **Intel GPU Plugin**: QuickSync support for k3s1/k3s2
 
 ## Key Operations Performed
@@ -161,6 +176,18 @@ All apps deployed via Flux GitOps from `/clusters/k3s-home/apps/media/`
 - NVIDIA Device Plugin for Kubernetes
 ```
 
+### GPU Time-Slicing Configuration
+Enabled GPU sharing between multiple containers:
+```yaml
+# /clusters/k3s-home/infrastructure/06-nvidia-gpu-plugin/configmap.yaml
+sharing:
+  timeSlicing:
+    resources:
+    - name: nvidia.com/gpu
+      replicas: 4  # Allow 4 containers to share the GPU
+```
+This allows Jellyfin, Ollama, and Automatic1111 to share the single Tesla T4.
+
 ## Maintenance Notes
 
 ### Common Commands
@@ -185,15 +212,24 @@ kubectl get gateway -n networking main-gateway
 1. **HelmReleases may show as failed** even when pods are running (usually reconciles eventually)
 2. **Ping to gateway IP fails** - This is normal, HTTP/HTTPS works fine
 3. **Journal logs** can fill control plane disk - cleaned with `journalctl --vacuum-time=7d`
+4. **Port conflicts** - Multiple services may use same ports internally:
+   - SABnzbd: 8080
+   - Open WebUI: 8080
+   - Automatic1111: Initially tried 8080, fixed to use 7860
+5. **PVC spec changes** - Bound PVCs cannot have their spec changed (selector, storage class)
+   - Must delete and recreate PVC if changes needed
+6. **Flux dependency issues** - Sometimes kustomizations get stuck waiting for dependencies
+   - Can manually apply resources while Flux catches up
 
 ## Future Considerations
 
 ### Potential Improvements
 1. **Monitoring Stack**: Prometheus + Grafana for metrics
-2. **GPU Workloads**: Ollama, ComfyUI, or other AI/ML applications
+2. **Additional AI Workloads**: ComfyUI, text-to-speech, or other AI/ML applications
 3. **Authentication**: Authelia or Authentik for service protection
 4. **Backup Strategy**: Automated config backups for *arr apps
 5. **Certificate Management**: cert-manager for automatic TLS
+6. **Distributed Storage**: Longhorn or Rook/Ceph to reduce R730 dependency
 
 ### Limitations
 - No true HA (single storage node)
@@ -229,6 +265,22 @@ kubectl get gateway -n networking main-gateway
 2. Clean journal logs: `sudo journalctl --vacuum-time=7d`
 3. Remove evicted pods: `kubectl delete pod --field-selector status.phase=Failed -A`
 
+### Recent Changes (June 13, 2025)
+1. **Added AI Stack**:
+   - Ollama for LLM inference with llama3.2:3b model
+   - Open WebUI for chat interface
+   - Automatic1111 for Stable Diffusion image generation
+   - All sharing Tesla T4 GPU via time-slicing
+
+2. **Fixed Storage Issues**:
+   - Removed incorrect node selectors causing control plane scheduling
+   - Fixed PVC spec immutability issues
+   - Corrected storage class usage (local-ssd vs non-existent local-nvme)
+
+3. **Resolved Port Conflicts**:
+   - Automatic1111 configured to use port 7860 instead of 8080
+   - Avoided conflicts with SABnzbd and Open WebUI
+
 ---
-Last Updated: June 2025
+Last Updated: June 13, 2025
 Cluster Version: K3s v1.32.5+k3s1
