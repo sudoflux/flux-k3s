@@ -6,3 +6,4 @@ resources:
   - helm-release.yaml
   - storage-classes.yaml
   - node-configs.yaml
+  - httproute.yaml
