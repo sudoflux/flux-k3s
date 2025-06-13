@@ -5,3 +5,4 @@ resources:
   - ../../base
   - helm-release.yaml
   - storage-classes.yaml
+  - node-configs.yaml

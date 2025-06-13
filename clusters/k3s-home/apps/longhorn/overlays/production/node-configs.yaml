@@ -1,0 +1,116 @@
+# Configuration for k3s1 node
+apiVersion: longhorn.io/v1beta2
+kind: Node
+metadata:
+  name: k3s1
+  namespace: longhorn-system
+spec:
+  disks:
+    default-disk-k3s1:
+      path: /var/lib/longhorn
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - nvme
+        - general
+---
+# Configuration for k3s2 node
+apiVersion: longhorn.io/v1beta2
+kind: Node
+metadata:
+  name: k3s2
+  namespace: longhorn-system
+spec:
+  disks:
+    default-disk-k3s2:
+      path: /var/lib/longhorn
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - nvme
+        - general
+---
+# Configuration for k3s3 node with multiple disk tiers
+apiVersion: longhorn.io/v1beta2
+kind: Node
+metadata:
+  name: k3s3
+  namespace: longhorn-system
+spec:
+  disks:
+    # Default disk for general use
+    default-disk-k3s3:
+      path: /var/lib/longhorn
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - general
+    # Ultra-fast Optane disks
+    optane-disk-1:
+      path: /mnt/optane-1/k8s-pv
+      allowScheduling: true
+      storageReserved: 5368709120  # Reserve 5Gi
+      tags:
+        - optane
+    optane-disk-2:
+      path: /mnt/optane-2/k8s-pv
+      allowScheduling: true
+      storageReserved: 5368709120  # Reserve 5Gi
+      tags:
+        - optane
+    # High-performance NVMe disks
+    nvme-disk-1:
+      path: /mnt/nvme-1/k8s-pv
+      allowScheduling: true
+      storageReserved: 21474836480  # Reserve 20Gi
+      tags:
+        - nvme
+    nvme-disk-2:
+      path: /mnt/nvme-2/k8s-pv
+      allowScheduling: true
+      storageReserved: 21474836480  # Reserve 20Gi
+      tags:
+        - nvme
+    # Standard SAS SSD disks
+    sas-ssd-disk-1:
+      path: /mnt/ssd-1/k8s-pv
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - sas-ssd
+    sas-ssd-disk-2:
+      path: /mnt/ssd-2/k8s-pv
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - sas-ssd
+    sas-ssd-disk-3:
+      path: /mnt/ssd-3/k8s-pv
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - sas-ssd
+    sas-ssd-disk-4:
+      path: /mnt/ssd-4/k8s-pv
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - sas-ssd
+    sas-ssd-disk-5:
+      path: /mnt/ssd-5/k8s-pv
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - sas-ssd
+    sas-ssd-disk-6:
+      path: /mnt/ssd-6/k8s-pv
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - sas-ssd
+    sas-ssd-disk-7:
+      path: /mnt/ssd-7/k8s-pv
+      allowScheduling: true
+      storageReserved: 10737418240  # Reserve 10Gi
+      tags:
+        - sas-ssd
