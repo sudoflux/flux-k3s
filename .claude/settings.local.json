@@ -29,7 +29,8 @@
       "Bash(true)",
       "Bash(mkdir:*)",
       "Bash(ls:*)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "mcp__zen__codereview"
     ],
     "deny": []
   }
