@@ -6,6 +6,7 @@ resources:
   - ./media
   - ./monitoring
   - ./media-kustomization.yaml
+  - ./monitoring-kustomization.yaml
   - ./ai
   - ./longhorn-kustomization.yaml
   - ./velero-kustomization.yaml

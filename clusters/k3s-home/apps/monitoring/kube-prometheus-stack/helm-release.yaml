@@ -1,0 +1,227 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: monitoring
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: "65.5.1"  # Latest stable version
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+  values:
+    # Default values optimized for homelab
+    defaultRules:
+      create: true
+      rules:
+        alertmanager: true
+        etcd: false  # K3s doesn't expose etcd
+        configReloaders: true
+        general: true
+        k8s: true
+        kubeApiserverAvailability: true
+        kubeApiserverBurnrate: true
+        kubeApiserverHistogram: true
+        kubeApiserverSlos: true
+        kubeControllerManager: false  # K3s specific
+        kubeSchedulerAlerting: false  # K3s specific
+        kubeSchedulerRecording: false  # K3s specific
+        kubelet: true
+        kubeProxy: false  # K3s doesn't use kube-proxy
+        kubePrometheusGeneral: true
+        kubePrometheusNodeRecording: true
+        kubernetesApps: true
+        kubernetesResources: true
+        kubernetesStorage: true
+        kubernetesSystem: true
+        network: true
+        node: true
+        nodeExporterAlerting: true
+        nodeExporterRecording: true
+        prometheus: true
+        prometheusOperator: true
+
+    # Prometheus configuration
+    prometheus:
+      prometheusSpec:
+        # Resource limits based on Gemini's recommendations
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 4
+            memory: 10Gi
+        
+        # Storage configuration - using local-path for performance
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: "local-path"
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 50Gi
+        
+        # Retention settings
+        retention: 30d
+        retentionSize: "40GB"
+        
+        # Service monitors to discover
+        serviceMonitorSelectorNilUsesHelmValues: false
+        serviceMonitorSelector: {}
+        serviceMonitorNamespaceSelector: {}
+        
+        # Pod monitors
+        podMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelector: {}
+        podMonitorNamespaceSelector: {}
+
+    # Grafana configuration
+    grafana:
+      enabled: true
+      
+      # Admin credentials from SOPS-encrypted secret
+      admin:
+        existingSecret: grafana-admin-credentials
+        userKey: admin-user
+        passwordKey: admin-password
+      
+      # Persistence using Longhorn for durability
+      persistence:
+        enabled: true
+        storageClassName: "longhorn-sas-ssd"
+        accessModes:
+          - ReadWriteOnce
+        size: 10Gi
+      
+      # Resource limits
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 1
+          memory: 2Gi
+      
+      # Grafana ini configuration
+      grafana.ini:
+        server:
+          domain: grafana.fletcherlabs.net
+          root_url: "%(protocol)s://%(domain)s/"
+        auth:
+          disable_login_form: false
+        security:
+          allow_embedding: true
+      
+      # Data sources
+      additionalDataSources:
+        - name: Loki
+          type: loki
+          url: http://loki:3100
+          jsonData:
+            maxLines: 5000
+      
+      # Pre-installed dashboards
+      dashboardProviders:
+        dashboardproviders.yaml:
+          apiVersion: 1
+          providers:
+            - name: 'default'
+              orgId: 1
+              folder: ''
+              type: file
+              disableDeletion: false
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards/default
+      
+      dashboards:
+        default:
+          # Node Exporter Full
+          node-exporter-full:
+            gnetId: 1860
+            revision: 37
+            datasource: Prometheus
+          # Kubernetes Global View
+          kubernetes-global:
+            gnetId: 15757
+            revision: 37
+            datasource: Prometheus
+          # NVIDIA DCGM Exporter
+          nvidia-dcgm:
+            gnetId: 12239
+            revision: 2
+            datasource: Prometheus
+
+    # Alertmanager configuration
+    alertmanager:
+      alertmanagerSpec:
+        # Resource limits
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        
+        # Storage using Longhorn for durability
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: "longhorn-sas-ssd"
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 5Gi
+      
+      config:
+        global:
+          resolve_timeout: 5m
+        route:
+          group_by: ['alertname', 'cluster', 'service']
+          group_wait: 10s
+          group_interval: 10s
+          repeat_interval: 12h
+          receiver: 'null'
+          routes:
+            - receiver: 'null'
+              matchers:
+                - alertname =~ "InfoInhibitor|Watchdog"
+        receivers:
+          - name: 'null'
+        templates:
+          - '/etc/alertmanager/config/*.tmpl'
+
+    # K3s specific configurations
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    kubeEtcd:
+      enabled: false
+    
+    # Prometheus Operator
+    prometheusOperator:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 200m
+          memory: 512Mi
+    
+    # Node exporter
+    nodeExporter:
+      enabled: true
+    
+    # Kube state metrics
+    kube-state-metrics:
+      enabled: true
