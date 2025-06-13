@@ -61,8 +61,8 @@ spec:
         controller: main
         ports:
           http:
-            port: 7860
-            targetPort: 7860
+            port: 8080
+            targetPort: 8080
             protocol: TCP
     persistence:
       models:
