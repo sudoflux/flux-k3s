@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-nvme
+  storageClassName: local-ssd
   resources:
     requests:
       storage: 10Gi  # For user data, conversations, settings
