@@ -83,6 +83,7 @@ This document provides a comprehensive overview of the K3s cluster setup, includ
 - SABnzbd uses `emptyDir` (local node storage) for incomplete downloads
 - Prevents download I/O from hitting NFS
 - Automatically cleaned on pod restart
+- **Node Affinity**: Pinned to k3s1/k3s2 to prevent I/O contention with primary Longhorn storage on k3s3
 
 ## Node Roles and Scheduling
 
