@@ -30,11 +30,7 @@ spec:
               - name: OLLAMA_BASE_URL
                 value: "http://ollama.ai.svc.cluster.local:11434"
               - name: WEBUI_SECRET_KEY
-                valueFrom:
-                  secretKeyRef:
-                    name: open-webui-secret
-                    key: secret-key
-                    optional: true
+                value: "changeme123456"  # Change this to a secure value
               - name: WEBUI_NAME
                 value: "FletcherLabs AI"
               - name: ENABLE_SIGNUP
