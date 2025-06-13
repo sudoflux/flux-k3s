@@ -19,7 +19,6 @@ spec:
       main:
         enabled: true
         type: deployment
-        pod:
         containers:
           main:
             enabled: true
