@@ -13,5 +13,4 @@ spec:
   selector:
     matchLabels:
       tier: bulk-storage
-      storage-type: sas
       node: k3s3
