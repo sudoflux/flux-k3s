@@ -91,10 +91,10 @@ spec:
         userKey: admin-user
         passwordKey: admin-password
       
-      # Persistence using Longhorn for durability
+      # Persistence using local-path due to k3s3 CSI issues
       persistence:
         enabled: true
-        storageClassName: "longhorn-sas-ssd"
+        storageClassName: "local-path"
         accessModes:
           - ReadWriteOnce
         size: 10Gi
@@ -171,11 +171,11 @@ spec:
             cpu: 500m
             memory: 1Gi
         
-        # Storage using Longhorn for durability
+        # Storage using local-path due to k3s3 CSI issues
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: "longhorn-sas-ssd"
+              storageClassName: "local-path"
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
