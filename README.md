@@ -268,7 +268,6 @@ spec:
 - **Prowlarr**: Indexer management (prowlarr.fletcherlabs.net)
 - **Whisparr**: Adult content management (whisparr.fletcherlabs.net)
 - **SABnzbd**: Usenet downloader (sabnzbd.fletcherlabs.net)
-- **Transmission**: BitTorrent client (transmission.fletcherlabs.net)
 
 ### AI/ML Stack
 - **Ollama**: LLM inference engine with llama3.2:3b

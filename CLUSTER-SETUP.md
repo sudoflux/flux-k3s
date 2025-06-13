@@ -271,7 +271,6 @@ All services accessible via HTTP (no HTTPS/TLS configured yet):
 - Prowlarr: http://prowlarr.fletcherlabs.net
 - Whisparr: http://whisparr.fletcherlabs.net
 - SABnzbd: http://sabnzbd.fletcherlabs.net
-- Transmission: http://transmission.fletcherlabs.net
 
 #### AI/ML Stack
 - Open WebUI: http://openwebui.fletcherlabs.net
