@@ -288,6 +288,7 @@ All planning and implementation documentation is maintained to ensure continuity
 
 #### Architecture & Planning
 - **Architectural Review**: `/home/josh/k3s-homelab-architecture-review.md` - Comprehensive review with risk analysis and improvement roadmap
+- **Implementation Roadmap**: `/home/josh/k3s-homelab-implementation-roadmap.md` - Detailed week-by-week execution plan with all phases
 - **Week 1 Security Summary**: `/home/josh/week1-security-summary.md` - Authentik and SOPS implementation details
 - **Authentik Setup Summary**: `/home/josh/authentik-setup-summary.md` - Specific Authentik deployment details
 
