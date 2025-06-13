@@ -28,11 +28,11 @@ spec:
         operator: Exists
         effect: NoSchedule
       extraVolumes:
-      - name: host-pods
+      - name: kubelet-pods
         hostPath:
           path: /var/lib/rancher/k3s/agent/kubelet/pods
       extraVolumeMounts:
-      - name: host-pods
+      - name: kubelet-pods
         mountPath: /var/lib/rancher/k3s/agent/kubelet/pods
         readOnly: true
     
@@ -45,14 +45,9 @@ spec:
         cpu: 500m
         memory: 512Mi
     
-    # Plugins for CSI (Longhorn) and S3 (Wasabi/B2 & MinIO)
+    # Plugins for S3 (Wasabi/B2 & MinIO)
+    # CSI support is now built into Velero 1.14+
     initContainers:
-    - name: velero-plugin-for-csi
-      image: velero/velero-plugin-for-csi:v0.7.1
-      imagePullPolicy: IfNotPresent
-      volumeMounts:
-      - mountPath: /target
-        name: plugins
     - name: velero-plugin-for-aws
       image: velero/velero-plugin-for-aws:v1.10.0
       imagePullPolicy: IfNotPresent
