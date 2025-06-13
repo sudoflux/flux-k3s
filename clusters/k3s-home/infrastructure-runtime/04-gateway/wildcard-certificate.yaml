@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: wildcard-fletcherlabs-net-tls
   issuerRef:
-    name: letsencrypt-staging
+    name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
   - "*.fletcherlabs.net"
