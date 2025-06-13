@@ -241,6 +241,13 @@ kubectl get gateway -n networking main-gateway
 - Control plane is a single VM
 - All storage depends on R730
 
+### Planned Improvements
+1. **WSL2 GPU Node**: Add desktop RTX 4090 to cluster via dedicated WSL2 instance
+   - See `/home/josh/flux-k3s/docs/wsl2-gpu-node-plan.md` for implementation details
+   - Pending 10GbE NIC replacement on desktop
+2. **Fix k3s3 Longhorn CSI**: Resolve driver registration issues
+3. **Offsite Backups**: Configure Wasabi or B2 for Velero
+
 ## Flux GitOps Structure
 ```
 /clusters/k3s-home/
@@ -250,6 +257,30 @@ kubectl get gateway -n networking main-gateway
 ├── infrastructure-runtime/  # Runtime configs (storage, priority classes)
 └── workloads/         # Cluster sync configuration
 ```
+
+## Service Access
+
+### Currently Deployed Services
+All services accessible via HTTP (no HTTPS/TLS configured yet):
+
+#### Media Stack
+- Jellyfin: http://jellyfin.fletcherlabs.net
+- Plex: http://plex.fletcherlabs.net
+- Sonarr: http://sonarr.fletcherlabs.net
+- Radarr: http://radarr.fletcherlabs.net
+- Prowlarr: http://prowlarr.fletcherlabs.net
+- Whisparr: http://whisparr.fletcherlabs.net
+- SABnzbd: http://sabnzbd.fletcherlabs.net
+- Transmission: http://transmission.fletcherlabs.net
+
+#### AI/ML Stack
+- Open WebUI: http://openwebui.fletcherlabs.net
+- Automatic1111: http://automatic1111.fletcherlabs.net
+
+#### Infrastructure
+- Authentik: http://authentik.fletcherlabs.net (⚠️ DO NOT enable 2FA yet)
+- Longhorn: http://longhorn.fletcherlabs.net
+- Grafana: http://grafana.fletcherlabs.net (admin / check SOPS secret)
 
 ## Quick Troubleshooting
 
@@ -270,7 +301,26 @@ kubectl get gateway -n networking main-gateway
 2. Clean journal logs: `sudo journalctl --vacuum-time=7d`
 3. Remove evicted pods: `kubectl delete pod --field-selector status.phase=Failed -A`
 
-### Recent Changes (June 13, 2025)
+### Current Issues Requiring Resolution
+
+1. **k3s3 Longhorn CSI Driver Not Registered**
+   - **Symptom**: CSINode k3s3 shows `drivers: null`
+   - **Impact**: Pods requiring Longhorn storage can't be scheduled on k3s3
+   - **Workaround**: Using local-path storage for monitoring stack
+   - **Fix Needed**: Investigate why CSI driver registration fails on k3s3
+
+2. **Monitoring Stack Storage**
+   - **Current**: Using local-path due to k3s3 CSI issues
+   - **Target**: Should use Longhorn for durability
+   - **Action**: Revert to Longhorn storage after fixing CSI driver
+
+3. **Velero Offsite Backup**
+   - **Status**: Local MinIO only, no offsite replication
+   - **Needed**: Wasabi or B2 configuration for 3-2-1 backup strategy
+
+## Recent Changes (June 13, 2025)
+
+### Morning Session
 1. **Added AI Stack**:
    - Ollama for LLM inference with llama3.2:3b model
    - Open WebUI for chat interface
@@ -286,6 +336,25 @@ kubectl get gateway -n networking main-gateway
    - Automatic1111 configured to use port 7860 instead of 8080
    - Avoided conflicts with SABnzbd and Open WebUI
 
+### Afternoon Session (AI Team: Claude + o3-mini + Gemini 2.5 Pro)
+1. **Completed Week 3 Observability Implementation**:
+   - Deployed kube-prometheus-stack with Prometheus, Grafana, Alertmanager
+   - Added NVIDIA DCGM exporter for GPU monitoring
+   - Deployed Loki for log aggregation
+   - Created HTTPRoute for Grafana access
+   - Fixed Flux dependency chain blocking apps deployment
+
+2. **Resolved Critical Issues**:
+   - Fixed SABnzbd node affinity patch API version (v2beta1 → v2)
+   - Added missing Helm repositories (prometheus-community, grafana)
+   - Worked around k3s3 Longhorn CSI driver issues with local-path storage
+
+3. **Documentation Updates**:
+   - Updated README.md with current cluster state
+   - Created week3-observability-summary.md
+   - Added WSL2 GPU node integration plan
+   - Fixed GPU specification (Tesla T4, not RTX 4090)
+
 ## Documentation Index
 
 ### Planning & Architecture Documents
@@ -298,6 +367,7 @@ All planning and implementation documentation is maintained to ensure continuity
 - **Authentik Setup Summary**: `/home/josh/authentik-setup-summary.md` - Specific Authentik deployment details
 - **Week 2 Storage Summary**: `/home/josh/week2-storage-backup-summary.md` - Longhorn and Velero implementation details
 - **Week 3 Observability Summary**: `/home/josh/flux-k3s/docs/week3-observability-summary.md` - Monitoring stack implementation details
+- **WSL2 GPU Node Plan**: `/home/josh/flux-k3s/docs/wsl2-gpu-node-plan.md` - RTX 4090 integration via WSL2
 
 #### Implementation Roadmap
 Based on architectural review, the implementation is divided into phases:
@@ -319,6 +389,7 @@ Based on architectural review, the implementation is divided into phases:
    - ✅ Loki for log aggregation
    - ✅ Grafana dashboards and HTTPRoute
    - ⏳ Offsite backup pending configuration
+   - ⚠️ Note: Monitoring stack using local-path storage due to k3s3 Longhorn CSI issues
 
 4. **Week 4**: Scheduled Task Review & Consolidation
    - Review all deployed services and optimize configurations
