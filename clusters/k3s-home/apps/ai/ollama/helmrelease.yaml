@@ -40,13 +40,11 @@ spec:
                 value: "compute,utility"
             resources:
               requests:
-                cpu: 2000m
-                memory: 8Gi
-                nvidia.com/gpu: 1
+                cpu: 4000m
+                memory: 16Gi
               limits:
-                cpu: 8000m
-                memory: 32Gi
-                nvidia.com/gpu: 1
+                cpu: 16000m
+                memory: 64Gi
             securityContext:
               privileged: true  # Required for GPU access
     service:

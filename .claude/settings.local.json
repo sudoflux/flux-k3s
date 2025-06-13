@@ -25,7 +25,9 @@
       "Bash(chmod:*)",
       "Bash(./reset-whisparr.sh:*)",
       "Bash(/tmp/whisparr_quality_cleanup.sh:*)",
-      "Bash(kustomize build:*)"
+      "Bash(kustomize build:*)",
+      "Bash(true)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }

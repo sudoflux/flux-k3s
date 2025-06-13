@@ -26,14 +26,8 @@ spec:
         effect: NoSchedule
     # Configure the plugin
     config:
-      # Allow multiple containers to share the GPU
-      default: |-
-        version: v1
-        sharing:
-          timeSlicing:
-            resources:
-              - name: nvidia.com/gpu
-                replicas: 10  # Allow up to 10 containers to share each GPU
+      # Use external ConfigMap for configuration
+      name: nvidia-device-plugin-config
     # Additional configuration for K3s
     runtimeClassName: nvidia
     extraEnv:
