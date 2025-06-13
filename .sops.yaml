@@ -1,0 +1,8 @@
+creation_rules:
+  # Encrypt only specific fields in Kubernetes secrets
+  - path_regex: .*secret.*\.yaml$
+    encrypted_regex: ^(data|stringData)$
+    age: age1ldyv96p8fpku638mlhgkzv5hjtjyc9krfwnqnx3drqvaf4jq3vyqgxurr5
+  # For other sensitive files, encrypt the entire file
+  - path_regex: .*\.enc\.yaml$
+    age: age1ldyv96p8fpku638mlhgkzv5hjtjyc9krfwnqnx3drqvaf4jq3vyqgxurr5

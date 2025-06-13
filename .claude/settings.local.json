@@ -30,7 +30,11 @@
       "Bash(mkdir:*)",
       "Bash(ls:*)",
       "Bash(openssl rand:*)",
-      "mcp__zen__codereview"
+      "mcp__zen__codereview",
+      "mcp__zen__chat",
+      "Bash(age-keygen:*)",
+      "Bash(cat:*)",
+      "Bash(sops -e -i:*)"
     ],
     "deny": []
   }
