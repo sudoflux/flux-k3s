@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: velero
+resources:
+  - ../../base
+  - helm-release.yaml
+  - minio.yaml
+  - credentials/wasabi-secret.yaml
+  - credentials/minio-secret.yaml
+  - credentials/minio-root-secret.yaml
+  - locations/backup-storage-locations.yaml
+  - locations/volume-snapshot-locations.yaml
+  - schedules/local-backup-schedule.yaml
+  - schedules/offsite-backup-schedule.yaml

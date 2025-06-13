@@ -1,0 +1,8 @@
+# Longhorn CSI Volume Snapshot Location
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: longhorn-csi
+  namespace: velero
+spec:
+  provider: csi

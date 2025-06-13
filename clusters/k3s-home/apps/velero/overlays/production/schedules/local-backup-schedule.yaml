@@ -1,0 +1,33 @@
+# Daily local backups for critical namespaces
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: critical-daily-local
+  namespace: velero
+spec:
+  schedule: "0 2 * * *"  # 2 AM daily
+  template:
+    includedNamespaces:
+    - authentik
+    - longhorn-system
+    - flux-system
+    - media
+    - ai
+    storageLocation: minio-local
+    volumeSnapshotLocations:
+    - longhorn-csi
+    ttl: "168h"  # Retain for 7 days
+---
+# All namespaces backup weekly
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: all-namespaces-weekly-local
+  namespace: velero
+spec:
+  schedule: "0 3 * * 0"  # 3 AM every Sunday
+  template:
+    storageLocation: minio-local
+    volumeSnapshotLocations:
+    - longhorn-csi
+    ttl: "720h"  # Retain for 30 days

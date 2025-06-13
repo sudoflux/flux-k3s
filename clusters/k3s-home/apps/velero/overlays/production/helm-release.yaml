@@ -1,0 +1,84 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: velero
+  namespace: velero
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: velero
+      version: "7.2.1"  # Latest stable version
+      sourceRef:
+        kind: HelmRepository
+        name: vmware-tanzu
+        namespace: flux-system
+  values:
+    # We'll create our own secrets and locations
+    credentials:
+      useSecret: false
+    
+    # Deploy the new kopia backup engine
+    deployNodeAgent: true
+    
+    # K3s specific configuration
+    nodeAgent:
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      extraVolumes:
+      - name: host-pods
+        hostPath:
+          path: /var/lib/rancher/k3s/agent/kubelet/pods
+      extraVolumeMounts:
+      - name: host-pods
+        mountPath: /var/lib/rancher/k3s/agent/kubelet/pods
+        readOnly: true
+    
+    # Resource requests and limits
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    
+    # Plugins for CSI (Longhorn) and S3 (Wasabi/B2 & MinIO)
+    initContainers:
+    - name: velero-plugin-for-csi
+      image: velero/velero-plugin-for-csi:v0.7.1
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+      - mountPath: /target
+        name: plugins
+    - name: velero-plugin-for-aws
+      image: velero/velero-plugin-for-aws:v1.10.0
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+      - mountPath: /target
+        name: plugins
+    
+    # Create a default backup storage location (we'll override with our own)
+    configuration:
+      backupStorageLocation:
+      - name: default
+        provider: aws
+        bucket: placeholder
+        config:
+          region: us-east-1
+      volumeSnapshotLocation:
+      - name: default
+        provider: csi
+    
+    # Enable features
+    features: EnableCSI
+    
+    # Backup settings
+    backupsEnabled: true
+    snapshotsEnabled: true
+    
+    # Enable the UI (optional)
+    serviceMonitor:
+      enabled: false  # Enable if you have Prometheus

@@ -7,3 +7,4 @@ resources:
   - authentik.yaml
   - bitnami.yaml
   - longhorn-helmrepository.yaml
+  - velero-helmrepository.yaml

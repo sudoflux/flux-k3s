@@ -1,0 +1,20 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: velero
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/k3s-home/apps/velero/overlays/production
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  wait: true
+  postBuild:
+    substituteFrom: []
+  # Decrypt SOPS secrets
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

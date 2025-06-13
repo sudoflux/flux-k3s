@@ -1,0 +1,35 @@
+# Weekly offsite backups for critical namespaces
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: critical-weekly-offsite
+  namespace: velero
+spec:
+  schedule: "0 4 * * 0"  # 4 AM every Sunday
+  paused: true  # Pause until Wasabi is configured
+  template:
+    includedNamespaces:
+    - authentik
+    - longhorn-system
+    - flux-system
+    - media
+    - ai
+    storageLocation: wasabi-offsite
+    volumeSnapshotLocations:
+    - longhorn-csi
+    ttl: "2160h"  # Retain for 90 days
+---
+# Monthly full backup offsite
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: all-namespaces-monthly-offsite
+  namespace: velero
+spec:
+  schedule: "0 5 1 * *"  # 5 AM on the 1st of each month
+  paused: true  # Pause until Wasabi is configured
+  template:
+    storageLocation: wasabi-offsite
+    volumeSnapshotLocations:
+    - longhorn-csi
+    ttl: "8760h"  # Retain for 1 year

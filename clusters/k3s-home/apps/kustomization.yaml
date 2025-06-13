@@ -8,3 +8,4 @@ resources:
   - ./media-kustomization.yaml
   - ./ai
   - ./longhorn-kustomization.yaml
+  - ./velero-kustomization.yaml
