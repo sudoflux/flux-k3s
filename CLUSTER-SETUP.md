@@ -139,6 +139,10 @@ All apps deployed via Flux GitOps from `/clusters/k3s-home/apps/ai/`
 - **Cilium**: CNI and service mesh
 - **NVIDIA Device Plugin**: GPU support for k3s3 with time-slicing
 - **Intel GPU Plugin**: QuickSync support for k3s1/k3s2
+- **Longhorn**: Distributed block storage with tiered storage classes
+- **Velero**: Backup and disaster recovery with MinIO for local S3 storage
+- **Authentik**: Identity provider with OAuth2/OIDC support
+- **SOPS**: Secrets encryption for GitOps
 
 ## Key Operations Performed
 
@@ -291,6 +295,7 @@ All planning and implementation documentation is maintained to ensure continuity
 - **Implementation Roadmap**: `/home/josh/k3s-homelab-implementation-roadmap.md` - Detailed week-by-week execution plan with all phases
 - **Week 1 Security Summary**: `/home/josh/week1-security-summary.md` - Authentik and SOPS implementation details
 - **Authentik Setup Summary**: `/home/josh/authentik-setup-summary.md` - Specific Authentik deployment details
+- **Week 2 Storage Summary**: `/home/josh/week2-storage-backup-summary.md` - Longhorn and Velero implementation details
 
 #### Implementation Roadmap
 Based on architectural review, the implementation is divided into phases:
@@ -300,12 +305,14 @@ Based on architectural review, the implementation is divided into phases:
    - ✅ SOPS secrets encryption
    - ✅ GitOps security hardening
 
-2. **Week 2-3**: Storage Resilience
-   - Deploy Longhorn for distributed storage
-   - Migrate critical apps from NFS
-   - Implement tiered storage classes
+2. **Week 2 (COMPLETED)**: Storage & Backup
+   - ✅ Longhorn distributed storage deployed
+   - ✅ Tiered storage classes (optane, nvme, sas-ssd)
+   - ✅ Velero backup management with MinIO
+   - ✅ Backup schedules configured
+   - ⏳ Offsite backup pending configuration
 
-3. **Week 4**: Observability
+3. **Week 3-4**: Observability
    - Deploy kube-prometheus-stack
    - Implement GPU monitoring (dcgm-exporter)
    - Set up Loki for log aggregation
