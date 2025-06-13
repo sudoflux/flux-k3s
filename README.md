@@ -2,23 +2,110 @@
 
 This repository contains the Flux GitOps configuration for a K3s homelab cluster running media services, AI workloads, and observability stack. It uses Cilium as the CNI with BGP and Gateway API support.
 
+## Architecture Overview
+
+```mermaid
+graph TD
+    subgraph "Home Network (192.168.10.0/24)"
+        Router[UDM-SE Router<br/>AS 64513]
+    end
+
+    subgraph "K3s Cluster"
+        subgraph "Control Plane"
+            Master[k3s-master1<br/>VM on R730<br/>192.168.10.30]
+        end
+        
+        subgraph "Worker Nodes"
+            K3S1[k3s1 - OptiPlex<br/>Intel QuickSync<br/>192.168.10.21]
+            K3S2[k3s2 - OptiPlex<br/>Intel QuickSync<br/>192.168.10.23]
+            K3S3[k3s3 - R630<br/>Tesla T4 GPU<br/>192.168.10.31]
+        end
+
+        subgraph "Storage"
+            Longhorn[Longhorn<br/>Distributed Storage]
+            LocalPath[Local Path<br/>Node Storage]
+        end
+
+        subgraph "Networking"
+            Cilium[Cilium CNI<br/>BGP + Gateway API]
+            Gateway[Main Gateway<br/>192.168.10.224]
+        end
+    end
+
+    subgraph "External Storage"
+        R730[Dell R730 Server<br/>NFS Provider]
+    end
+
+    subgraph "GitOps"
+        GitHub[GitHub: flux-k3s]
+        Flux[Flux CD]
+    end
+
+    Router <--> |BGP Peering| Cilium
+    Master --> K3S1
+    Master --> K3S2
+    Master --> K3S3
+    
+    K3S1 --> Longhorn
+    K3S2 --> Longhorn
+    K3S3 --> Longhorn
+    K3S3 --> LocalPath
+    
+    Cilium --> Gateway
+    Gateway --> |HTTP| Router
+    
+    R730 --> |NFS| K3S1
+    R730 --> |NFS| K3S2
+    R730 --> |NFS| K3S3
+    
+    GitHub --> |GitOps| Flux
+    Flux --> |Deploy| Master
+```
+
 ## Cluster Configuration
 
 ### Nodes
+All nodes use **static IP addresses** configured in their network settings.
+
 - **k3s-master1** (VM on R730): Control plane (192.168.10.30)
 - **k3s1** (OptiPlex): Light compute worker with Intel QuickSync (192.168.10.21)
 - **k3s2** (OptiPlex): Light compute worker with Intel QuickSync (192.168.10.23)
 - **k3s3** (R630): GPU compute worker with NVIDIA Tesla T4, dual Xeon E5-2697A v4, 384GB RAM (192.168.10.31)
 
 ### Storage
-- **R730**: NFS storage provider
-  - `/mnt/nvme_storage`: App configurations (backed by NVMe)
-  - `/mnt/rust/media`: Media files (backed by HDD array)
-- **Longhorn**: Distributed block storage across nodes
-- **Local Storage**: k3s3 has tiered local storage (Optane, NVMe, SAS SSDs)
+Storage is configured with different backends for specific use cases:
+
+- **NFS (Network Attached Storage)**: 
+  - **Source**: Dell R730 server
+  - **App Configs**: `/mnt/nvme_storage` - Fast NVMe-backed storage for application configurations
+  - **Media Files**: `/mnt/rust/media` - Large HDD array for media libraries
+  - **Use Case**: Shared storage accessible by all nodes, ideal for stateful apps
+
+- **Longhorn (Distributed Block Storage)**:
+  - **Type**: Cloud-native distributed storage with automatic replication
+  - **Use Case**: Persistent volumes requiring high availability
+  - **Classes**: `longhorn-optane`, `longhorn-nvme`, `longhorn-sas-ssd`, `longhorn-replicated`
+
+- **Local Path (Node Storage)**:
+  - **Type**: Direct node disk access, no replication
+  - **Use Case**: Temporary data, high IOPS workloads
+  - **Note**: k3s3 has tiered local storage (Optane, NVMe, SAS SSDs)
 
 ### Important K3s Configuration
-K3s must be configured with `--disable=servicelb` to prevent conflicts with Cilium's load balancer functionality. This is set in `/etc/systemd/system/k3s.service` on the master node.
+
+K3s requires specific configuration to work with Cilium:
+
+```bash
+# /etc/systemd/system/k3s.service on master node
+--disable=servicelb    # Disable K3s built-in load balancer
+--flannel-backend=none # Disable default Flannel CNI
+--disable-network-policy # Cilium handles network policies
+```
+
+**Why these flags?**
+- K3s includes Klipper-LB by default, which conflicts with Cilium's BGP load balancer
+- Flannel must be disabled to use Cilium as the CNI
+- K3s network policies are replaced by Cilium's eBPF-based policies
 
 ## Overview
 
@@ -61,9 +148,17 @@ sudo kubectl get nodes
 sudo kubectl get pods -A
 
 # Force Flux reconciliation
+flux reconcile kustomization <name> --with-source
+
+# Or if flux CLI not available:
 sudo kubectl annotate kustomization <name> -n flux-system \
   reconcile.fluxcd.io/requestedAt=$(date +%s) --overwrite
+
+# List all kustomizations and their status
+sudo kubectl get kustomizations -n flux-system
 ```
+
+Common kustomizations: `apps`, `media`, `monitoring`, `longhorn`, `velero`
 
 ## Prerequisites
 
@@ -85,8 +180,11 @@ kubectl get nodes --show-labels | grep bgp=enabled
 Your router (UDM-SE) must be configured with:
 - BGP enabled
 - AS Number: 64513
-- Neighbor IP: Your k3s node IP(s)
+- Neighbor IP: Your k3s node IP(s) that have `bgp=enabled` label
 - Neighbor AS: 64512
+- **Important**: Ensure TCP port 179 is open between router and nodes
+
+**Note**: Cilium uses BGP to advertise LoadBalancer service IPs directly to your router, eliminating the need for MetalLB or other solutions.
 
 ## IP Address Allocation
 
@@ -227,5 +325,5 @@ spec:
 
 For detailed documentation, see:
 - [CLUSTER-SETUP.md](./CLUSTER-SETUP.md) - Comprehensive cluster documentation
-- [docs/](./docs/) - Weekly implementation summaries
-- [Implementation Roadmap](~/k3s-homelab-implementation-roadmap.md) - Full project plan
+- [docs/](./docs/) - Weekly implementation summaries and plans
+- External docs referenced in CLUSTER-SETUP.md
