@@ -6,8 +6,18 @@ metadata:
 spec:
   secretName: wildcard-fletcherlabs-net-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-staging
     kind: ClusterIssuer
   dnsNames:
-  - "*.fletcherlabs.net"
-  - "fletcherlabs.net"
+  - "grafana.fletcherlabs.net"
+  - "jellyfin.fletcherlabs.net"
+  - "plex.fletcherlabs.net"
+  - "sonarr.fletcherlabs.net"
+  - "radarr.fletcherlabs.net"
+  - "prowlarr.fletcherlabs.net"
+  - "sabnzbd.fletcherlabs.net"
+  - "authentik.fletcherlabs.net"
+  - "longhorn.fletcherlabs.net"
+  - "ai.fletcherlabs.net"
+  - "sd.fletcherlabs.net"
+  - "ollama.fletcherlabs.net"
