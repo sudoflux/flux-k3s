@@ -23,6 +23,7 @@ spec:
         pod:
           nodeSelector:
             kubernetes.io/hostname: k3s3  # Pin to GPU node
+          runtimeClassName: nvidia  # Use NVIDIA runtime
         containers:
           main:
             enabled: true
@@ -40,11 +41,13 @@ spec:
                 value: "compute,utility"
             resources:
               requests:
-                cpu: 4000m
-                memory: 16Gi
+                cpu: 2000m
+                memory: 8Gi
+                nvidia.com/gpu: 1
               limits:
-                cpu: 16000m
-                memory: 64Gi
+                cpu: 8000m
+                memory: 32Gi
+                nvidia.com/gpu: 1
             securityContext:
               privileged: true  # Required for GPU access
     service:
