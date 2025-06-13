@@ -3,3 +3,6 @@ kind: Kustomization
 resources:
   - helmrelease.yaml
   - httproute.yaml
+
+patchesStrategicMerge:
+  - node-affinity-patch.yaml

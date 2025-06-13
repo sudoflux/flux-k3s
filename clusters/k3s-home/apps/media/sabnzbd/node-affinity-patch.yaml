@@ -1,0 +1,21 @@
+# Patch to pin SABnzbd to OptiPlex nodes
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: sabnzbd
+  namespace: media
+spec:
+  values:
+    controllers:
+      main:
+        pod:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                    - k3s1
+                    - k3s2
