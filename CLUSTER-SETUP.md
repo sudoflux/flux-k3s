@@ -333,6 +333,9 @@ Based on architectural review, the implementation is divided into phases:
 - **SOPS Age Key**: `~/.config/sops/age/keys.txt` (BACKUP THIS!)
 - **Encryption Config**: `/.sops.yaml` in repository root
 - **Authentik**: https://authentik.fletcherlabs.net (needs initial setup)
+  - **⚠️ IMPORTANT**: Do not enable 2FA/forward auth until all infrastructure work is complete
+  - Enabling authentication too early will block automation tools and debugging access
+  - Complete all AI assistant implementation work before securing services
 
 ---
 Last Updated: June 13, 2025
