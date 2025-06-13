@@ -10,11 +10,8 @@ spec:
       name: letsencrypt-staging-key
     solvers:
     - http01:
-        gatewayHTTPRoute:
-          parentRefs:
-          - name: main-gateway
-            namespace: networking
-            kind: Gateway
+        ingress:
+          ingressClassName: cilium
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -28,8 +25,5 @@ spec:
       name: letsencrypt-prod-key
     solvers:
     - http01:
-        gatewayHTTPRoute:
-          parentRefs:
-          - name: main-gateway
-            namespace: networking
-            kind: Gateway
+        ingress:
+          ingressClassName: cilium
