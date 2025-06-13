@@ -34,6 +34,10 @@ spec:
   dependsOn: [{ name: infra-crds }]
   wait: true
   timeout: 10m
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
 ---
 # Layer 2: Cilium (One single step)
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -84,6 +88,10 @@ spec:
   dependsOn: 
     - { name: infra-intel-gpu } # Depends on Intel GPU plugin
     - { name: infra-nvidia-gpu } # Depends on NVIDIA GPU plugin
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
 ---
 # Layer 4: Applications
 apiVersion: kustomize.toolkit.fluxcd.io/v1
