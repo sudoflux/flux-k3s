@@ -1,0 +1,62 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: longhorn
+  namespace: longhorn-system
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: longhorn
+      version: "1.6.2"  # Latest stable version
+      sourceRef:
+        kind: HelmRepository
+        name: longhorn
+        namespace: flux-system
+  values:
+    # K3s specific configuration
+    csi:
+      kubeletRootDir: /var/lib/rancher/k3s/agent/kubelet
+    
+    # Default settings
+    defaultSettings:
+      # Backup configuration - Using NFS on R730
+      backupTarget: "nfs://192.168.10.100:/mnt/nvme_storage/longhorn-backups"
+      backupTargetCredentialSecret: null
+      
+      # Replication settings
+      defaultReplicaCount: 3
+      defaultDataLocality: "best-effort"
+      replicaSoftAntiAffinity: true
+      replicaAutoBalance: "best-effort"
+      
+      # Storage settings
+      storageMinimalAvailablePercentage: 15
+      storageOverProvisioningPercentage: 200
+      
+      # Create default storage class
+      createDefaultStorageClass: false  # We'll create our own tiered classes
+      
+      # Node drain policy
+      nodeDownPodDeletionPolicy: "delete-both-statefulset-and-deployment-pod"
+      
+      # System managed components toleration
+      taintToleration: "cattle.io/os=linux:NoSchedule"
+      
+      # Monitoring
+      createDefaultDiskLabeledNodes: true
+      
+    # Ingress for UI
+    ingress:
+      enabled: true
+      ingressClassName: "cilium"
+      host: "longhorn.fletcherlabs.net"
+      tls: false  # Add TLS when cert-manager is configured
+      
+    # Resource limits for Longhorn components
+    resources:
+      limits:
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 128Mi

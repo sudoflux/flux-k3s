@@ -1,0 +1,72 @@
+# Ultra-fast tier - Optane storage on k3s3
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-optane
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: "2"  # Only k3s3 has Optane, so we can't do 3 replicas
+  staleReplicaTimeout: "2880"  # 48 hours
+  diskSelector: "optane"
+  nodeSelector: "k3s3"
+  dataLocality: "strict-local"  # Keep data local for maximum performance
+  fsType: "ext4"
+---
+# High-performance tier - NVMe storage
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-nvme
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"  # Make this the default
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: "3"  # All nodes have NVMe storage
+  staleReplicaTimeout: "2880"
+  diskSelector: "nvme"
+  dataLocality: "best-effort"
+  fsType: "ext4"
+---
+# Standard tier - SAS SSD storage on k3s3
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-sas-ssd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: "2"  # Replicas will be on other nodes' NVMe
+  staleReplicaTimeout: "2880"
+  diskSelector: "sas-ssd"
+  nodeSelector: "k3s3"  # Initial volume placement
+  dataLocality: "best-effort"
+  fsType: "ext4"
+---
+# General purpose replicated storage (no specific disk requirements)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-replicated
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: "3"
+  staleReplicaTimeout: "2880"
+  dataLocality: "best-effort"
+  fsType: "ext4"

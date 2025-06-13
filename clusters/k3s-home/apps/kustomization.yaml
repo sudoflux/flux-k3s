@@ -7,3 +7,4 @@ resources:
   - ./monitoring
   - ./media-kustomization.yaml
   - ./ai
+  - ./longhorn-kustomization.yaml

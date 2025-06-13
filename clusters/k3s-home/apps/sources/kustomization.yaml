@@ -6,3 +6,4 @@ resources:
   - bjw-s.yaml
   - authentik.yaml
   - bitnami.yaml
+  - longhorn-helmrepository.yaml
