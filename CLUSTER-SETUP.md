@@ -368,6 +368,8 @@ All planning and implementation documentation is maintained to ensure continuity
 - **Week 2 Storage Summary**: `/home/josh/week2-storage-backup-summary.md` - Longhorn and Velero implementation details
 - **Week 3 Observability Summary**: `/home/josh/flux-k3s/docs/week3-observability-summary.md` - Monitoring stack implementation details
 - **WSL2 GPU Node Plan**: `/home/josh/flux-k3s/docs/wsl2-gpu-node-plan.md` - RTX 4090 integration via WSL2
+- **Next Session Tasks**: `/home/josh/flux-k3s/docs/next-session-tasks.md` - Immediate priorities after NIC replacement
+- **WSL2 Setup Script**: `/home/josh/flux-k3s/docs/setup-wsl-k3s-node.ps1` - PowerShell automation for WSL2 node
 
 #### Implementation Roadmap
 Based on architectural review, the implementation is divided into phases:
@@ -417,5 +419,22 @@ Based on architectural review, the implementation is divided into phases:
   - Complete all AI assistant implementation work before securing services
 
 ---
-Last Updated: June 13, 2025
+
+## AI Team Instructions
+
+⚠️ **IMPORTANT**: System was powered down for 10GbE NIC replacement. This is expected.
+
+### Start Here for Next Session
+1. **Read This File First**: CLUSTER-SETUP.md for complete cluster overview
+2. **Check Immediate Tasks**: `/home/josh/flux-k3s/docs/next-session-tasks.md`
+3. **Current Issues**: See "Current Issues Requiring Resolution" section above
+4. **Planned Work**: See "Planned Improvements" section above
+
+### Key Documentation Locations
+- **In Repository**: `/home/josh/flux-k3s/docs/` - All new docs are here
+- **External Docs**: Listed in "Documentation Index" section above
+- **Today's Work**: See "Recent Changes (June 13, 2025)" section
+
+---
+Last Updated: June 13, 2025 (Afternoon Session)
 Cluster Version: K3s v1.32.5+k3s1
