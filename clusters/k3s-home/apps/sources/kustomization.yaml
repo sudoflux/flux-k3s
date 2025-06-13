@@ -8,3 +8,6 @@ resources:
   - bitnami.yaml
   - longhorn-helmrepository.yaml
   - velero-helmrepository.yaml
+  - prometheus-community-helmrepository.yaml
+  - grafana-helmrepository.yaml
+  - nvidia-dcgm-helmrepository.yaml
