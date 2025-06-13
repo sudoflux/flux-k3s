@@ -122,6 +122,7 @@ spec:
       additionalDataSources:
         - name: Loki
           type: loki
+          access: proxy
           url: http://loki:3100
           jsonData:
             maxLines: 5000

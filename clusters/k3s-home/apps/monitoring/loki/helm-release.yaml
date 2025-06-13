@@ -1,0 +1,101 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: loki
+  namespace: monitoring
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: loki
+      version: "5.42.0"  # Latest stable version
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+  values:
+    # Deploy in single binary (monolithic) mode for homelab efficiency
+    deploymentMode: SingleBinary
+    
+    # Single binary configuration
+    singleBinary:
+      replicas: 1
+      
+      # Resource allocation for homelab
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+      
+      # Persistence using Longhorn
+      persistence:
+        enabled: true
+        storageClass: "longhorn-sas-ssd"
+        size: 10Gi
+    
+    # Loki configuration
+    loki:
+      # Auth disabled for internal use
+      auth_enabled: false
+      
+      # Server configuration
+      server:
+        http_listen_port: 3100
+        grpc_listen_port: 9095
+      
+      # Common configuration
+      commonConfig:
+        path_prefix: /var/loki
+        replication_factor: 1
+      
+      # Storage configuration - filesystem for simplicity
+      storage:
+        type: filesystem
+        filesystem:
+          directory: /var/loki/chunks
+      
+      # Schema configuration
+      schemaConfig:
+        configs:
+          - from: "2024-01-01"
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: index_
+              period: 24h
+      
+      # Limits configuration
+      limits_config:
+        retention_period: 168h  # 7 days
+        ingestion_rate_mb: 10
+        ingestion_burst_size_mb: 20
+        max_query_series: 5000
+        max_query_parallelism: 32
+      
+      # Compactor configuration for retention
+      compactor:
+        working_directory: /var/loki/compactor
+        compaction_interval: 10m
+        retention_enabled: true
+        delete_request_store: filesystem
+    
+    # ServiceMonitor for metrics
+    monitoring:
+      selfMonitoring:
+        enabled: false
+      serviceMonitor:
+        enabled: true
+        labels:
+          release: kube-prometheus-stack
+    
+    # Gateway disabled - accessing Loki directly
+    gateway:
+      enabled: false
+    
+    # Test pod for connectivity verification
+    test:
+      enabled: false
