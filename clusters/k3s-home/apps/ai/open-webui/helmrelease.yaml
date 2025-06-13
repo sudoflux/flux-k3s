@@ -1,0 +1,62 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: open-webui
+  namespace: ai
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+      reconcileStrategy: ChartVersion
+  values:
+    controllers:
+      main:
+        enabled: true
+        type: deployment
+        replicas: 1
+        containers:
+          main:
+            enabled: true
+            image:
+              repository: ghcr.io/open-webui/open-webui
+              tag: main
+            env:
+              - name: OLLAMA_BASE_URL
+                value: "http://ollama.ai.svc.cluster.local:11434"
+              - name: WEBUI_SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: open-webui-secret
+                    key: secret-key
+                    optional: true
+              - name: WEBUI_NAME
+                value: "FletcherLabs AI"
+              - name: ENABLE_SIGNUP
+                value: "true"  # Change to false after initial setup
+            resources:
+              requests:
+                cpu: 500m
+                memory: 1Gi
+              limits:
+                cpu: 2000m
+                memory: 4Gi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+            targetPort: 8080
+            protocol: TCP
+    persistence:
+      data:
+        enabled: true
+        existingClaim: open-webui-data-pvc
+        globalMounts:
+          - path: /app/backend/data
