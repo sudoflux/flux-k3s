@@ -1,0 +1,22 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: automatic1111-http-route
+  namespace: ai
+spec:
+  parentRefs:
+    - name: main-gateway
+      namespace: networking
+      group: gateway.networking.k8s.io
+      kind: Gateway
+  hostnames:
+    - "sd.fletcherlabs.net"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: automatic1111
+          port: 7860
+          weight: 1

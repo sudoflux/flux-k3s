@@ -1,0 +1,83 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: automatic1111
+  namespace: ai
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+      reconcileStrategy: ChartVersion
+  values:
+    controllers:
+      main:
+        enabled: true
+        type: deployment
+        replicas: 1
+        pod:
+          nodeSelector:
+            kubernetes.io/hostname: k3s3  # Pin to GPU node
+          runtimeClassName: nvidia  # Use NVIDIA runtime
+        containers:
+          main:
+            enabled: true
+            image:
+              repository: ghcr.io/gngpp/stable-diffusion-webui
+              tag: latest
+            args:
+              - "--listen"
+              - "--enable-insecure-extension-access"
+              - "--xformers"
+              - "--medvram"  # Use medium VRAM optimization for T4
+              - "--api"
+            env:
+              - name: NVIDIA_VISIBLE_DEVICES
+                value: "all"
+              - name: NVIDIA_DRIVER_CAPABILITIES
+                value: "compute,utility"
+              - name: TZ
+                value: "America/New_York"
+              - name: COMMANDLINE_ARGS
+                value: "--listen --enable-insecure-extension-access --xformers --medvram --api"
+            resources:
+              requests:
+                cpu: 2000m
+                memory: 8Gi
+                nvidia.com/gpu: 1
+              limits:
+                cpu: 8000m
+                memory: 16Gi
+                nvidia.com/gpu: 1
+            securityContext:
+              privileged: true  # Required for GPU access
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 7860
+            targetPort: 7860
+            protocol: TCP
+    persistence:
+      models:
+        enabled: true
+        existingClaim: automatic1111-models-pvc
+        globalMounts:
+          - path: /stable-diffusion-webui/models
+      outputs:
+        enabled: true
+        existingClaim: automatic1111-outputs-pvc
+        globalMounts:
+          - path: /stable-diffusion-webui/outputs
+      cache:
+        enabled: true
+        type: emptyDir
+        sizeLimit: 10Gi
+        globalMounts:
+          - path: /root/.cache
