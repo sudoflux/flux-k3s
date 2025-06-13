@@ -9,15 +9,5 @@ spec:
     name: letsencrypt-staging
     kind: ClusterIssuer
   dnsNames:
-  - "grafana.fletcherlabs.net"
-  - "jellyfin.fletcherlabs.net"
-  - "plex.fletcherlabs.net"
-  - "sonarr.fletcherlabs.net"
-  - "radarr.fletcherlabs.net"
-  - "prowlarr.fletcherlabs.net"
-  - "sabnzbd.fletcherlabs.net"
-  - "authentik.fletcherlabs.net"
-  - "longhorn.fletcherlabs.net"
-  - "ai.fletcherlabs.net"
-  - "sd.fletcherlabs.net"
-  - "ollama.fletcherlabs.net"
+  - "*.fletcherlabs.net"
+  - "fletcherlabs.net"
