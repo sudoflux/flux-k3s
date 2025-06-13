@@ -281,6 +281,50 @@ kubectl get gateway -n networking main-gateway
    - Automatic1111 configured to use port 7860 instead of 8080
    - Avoided conflicts with SABnzbd and Open WebUI
 
+## Documentation Index
+
+### Planning & Architecture Documents
+All planning and implementation documentation is maintained to ensure continuity across sessions with AI assistants.
+
+#### Architecture & Planning
+- **Architectural Review**: `/home/josh/k3s-homelab-architecture-review.md` - Comprehensive review with risk analysis and improvement roadmap
+- **Week 1 Security Summary**: `/home/josh/week1-security-summary.md` - Authentik and SOPS implementation details
+- **Authentik Setup Summary**: `/home/josh/authentik-setup-summary.md` - Specific Authentik deployment details
+
+#### Implementation Roadmap
+Based on architectural review, the implementation is divided into phases:
+
+1. **Week 1 (COMPLETED)**: Security & Authentication
+   - ✅ Authentik deployment
+   - ✅ SOPS secrets encryption
+   - ✅ GitOps security hardening
+
+2. **Week 2-3**: Storage Resilience
+   - Deploy Longhorn for distributed storage
+   - Migrate critical apps from NFS
+   - Implement tiered storage classes
+
+3. **Week 4**: Observability
+   - Deploy kube-prometheus-stack
+   - Implement GPU monitoring (dcgm-exporter)
+   - Set up Loki for log aggregation
+
+4. **Month 2**: High Availability
+   - Multi-master control plane with embedded etcd
+   - Implement comprehensive backup strategy
+   - Network redundancy improvements
+
+### Quick Reference
+- **Cluster Access**: SSH to any node with passwordless access
+- **GitOps Repo**: https://github.com/sudoflux/flux-k3s
+- **Services Domain**: *.fletcherlabs.net
+- **Gateway IP**: 192.168.10.224
+
+### Important Security Information
+- **SOPS Age Key**: `~/.config/sops/age/keys.txt` (BACKUP THIS!)
+- **Encryption Config**: `/.sops.yaml` in repository root
+- **Authentik**: https://authentik.fletcherlabs.net (needs initial setup)
+
 ---
 Last Updated: June 13, 2025
 Cluster Version: K3s v1.32.5+k3s1
