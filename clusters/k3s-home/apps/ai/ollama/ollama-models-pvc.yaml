@@ -10,7 +10,3 @@ spec:
   resources:
     requests:
       storage: 200Gi  # Space for multiple models
-  selector:
-    matchLabels:
-      tier: bulk-storage
-      node: k3s3
