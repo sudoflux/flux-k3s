@@ -8,7 +8,7 @@ spec:
     - name: main-gateway
       namespace: networking
   hostnames:
-    - "plex.fletcherlabs.net"
+    - "plex.fletcherlabs.com"
   rules:
     - backendRefs:
         - name: plex

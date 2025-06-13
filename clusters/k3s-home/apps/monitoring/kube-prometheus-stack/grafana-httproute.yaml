@@ -8,7 +8,7 @@ spec:
     - name: main-gateway
       namespace: networking
   hostnames:
-    - "grafana.fletcherlabs.net"
+    - "grafana.fletcherlabs.com"
   rules:
     - matches:
         - path:

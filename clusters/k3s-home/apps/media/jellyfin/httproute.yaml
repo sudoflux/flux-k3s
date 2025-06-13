@@ -8,7 +8,7 @@ spec:
     - name: main-gateway
       namespace: networking
   hostnames:
-    - "jellyfin.fletcherlabs.net"
+    - "jellyfin.fletcherlabs.com"
   rules:
     - matches:
         - path:

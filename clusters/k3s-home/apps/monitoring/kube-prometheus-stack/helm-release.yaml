@@ -111,7 +111,7 @@ spec:
       # Grafana ini configuration
       grafana.ini:
         server:
-          domain: grafana.fletcherlabs.net
+          domain: grafana.fletcherlabs.com
           root_url: "%(protocol)s://%(domain)s/"
         auth:
           disable_login_form: false

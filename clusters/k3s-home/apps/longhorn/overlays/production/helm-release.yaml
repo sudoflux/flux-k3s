@@ -50,7 +50,7 @@ spec:
     ingress:
       enabled: true
       ingressClassName: "cilium"
-      host: "longhorn.fletcherlabs.net"
+      host: "longhorn.fletcherlabs.com"
       tls: false  # Add TLS when cert-manager is configured
       
     # Resource limits for Longhorn components

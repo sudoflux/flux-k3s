@@ -10,7 +10,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "ai.fletcherlabs.net"
+    - "ai.fletcherlabs.com"
   rules:
     - matches:
         - path:
