@@ -20,13 +20,6 @@ spec:
         enabled: true
         type: deployment
         pod:
-          nodeSelector:
-            node-type: storage  # Run on R730 storage node
-          tolerations:
-            - key: storage
-              operator: Equal
-              value: high-performance
-              effect: NoSchedule
         containers:
           main:
             enabled: true
