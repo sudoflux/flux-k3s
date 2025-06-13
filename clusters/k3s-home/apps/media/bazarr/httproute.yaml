@@ -12,7 +12,7 @@ spec:
 
   # This is the domain name you will use to access the service
   hostnames:
-    - "bazarr.fletcherlabs.com"
+    - "bazarr.fletcherlabs.net"
 
   # This defines the routing rule
   rules:

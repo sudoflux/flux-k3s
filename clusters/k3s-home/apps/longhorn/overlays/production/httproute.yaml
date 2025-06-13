@@ -8,7 +8,7 @@ spec:
   - name: main-gateway
     namespace: networking
   hostnames:
-  - "longhorn.fletcherlabs.com"
+  - "longhorn.fletcherlabs.net"
   rules:
   - backendRefs:
     - name: longhorn-frontend

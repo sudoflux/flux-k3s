@@ -8,7 +8,7 @@ spec:
     - name: main-gateway
       namespace: networking
   hostnames:
-    - "lidarr.fletcherlabs.com"
+    - "lidarr.fletcherlabs.net"
   rules:
     - backendRefs:
         - name: lidarr

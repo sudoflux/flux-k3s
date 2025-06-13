@@ -34,7 +34,7 @@ spec:
       valuesKey: values.yaml
   values:
     global:
-      domain: authentik.fletcherlabs.com
+      domain: authentik.fletcherlabs.net
       
     authentik:
       secret_key: "${AUTHENTIK_SECRET_KEY}"
@@ -53,7 +53,7 @@ spec:
         port: 587
         use_tls: false
         use_ssl: false
-        from: "authentik@fletcherlabs.com"
+        from: "authentik@fletcherlabs.net"
         
     server:
       ingress:

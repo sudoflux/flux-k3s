@@ -39,7 +39,7 @@ spec:
                   name: rr-env
             env:
               - name: JELLYFIN_PublishedServerUrl
-                value: "https://jellyfin.fletcherlabs.com"
+                value: "https://jellyfin.fletcherlabs.net"
             securityContext:
               runAsUser: 0
               runAsGroup: 0

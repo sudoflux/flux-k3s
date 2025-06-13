@@ -8,7 +8,7 @@ spec:
     - name: main-gateway
       namespace: networking
   hostnames:
-    - "prowlarr.fletcherlabs.com"
+    - "prowlarr.fletcherlabs.net"
   rules:
     - backendRefs:
         - name: prowlarr
