@@ -297,6 +297,7 @@ All planning and implementation documentation is maintained to ensure continuity
 - **Week 1 Security Summary**: `/home/josh/week1-security-summary.md` - Authentik and SOPS implementation details
 - **Authentik Setup Summary**: `/home/josh/authentik-setup-summary.md` - Specific Authentik deployment details
 - **Week 2 Storage Summary**: `/home/josh/week2-storage-backup-summary.md` - Longhorn and Velero implementation details
+- **Week 3 Observability Summary**: `/home/josh/flux-k3s/docs/week3-observability-summary.md` - Monitoring stack implementation details
 
 #### Implementation Roadmap
 Based on architectural review, the implementation is divided into phases:
@@ -307,18 +308,25 @@ Based on architectural review, the implementation is divided into phases:
    - ✅ GitOps security hardening
 
 2. **Week 2 (COMPLETED)**: Storage & Backup
-   - ✅ Longhorn distributed storage deployed
+   - ✅ Longhorn distributed storage deployment
    - ✅ Tiered storage classes (optane, nvme, sas-ssd)
-   - ✅ Velero backup management with MinIO
-   - ✅ Backup schedules configured
+   - ✅ Velero backup solution with MinIO
+   - ✅ SABnzbd node affinity optimization
+
+3. **Week 3 (COMPLETED)**: Observability
+   - ✅ kube-prometheus-stack deployment
+   - ✅ NVIDIA DCGM exporter for GPU monitoring
+   - ✅ Loki for log aggregation
+   - ✅ Grafana dashboards and HTTPRoute
    - ⏳ Offsite backup pending configuration
 
-3. **Week 3-4**: Observability
-   - Deploy kube-prometheus-stack
-   - Implement GPU monitoring (dcgm-exporter)
-   - Set up Loki for log aggregation
+4. **Week 4**: Scheduled Task Review & Consolidation
+   - Review all deployed services and optimize configurations
+   - Implement missing alert rules
+   - Create comprehensive documentation
+   - Plan for high availability improvements
 
-4. **Month 2**: High Availability
+5. **Month 2**: High Availability
    - Multi-master control plane with embedded etcd
    - Implement comprehensive backup strategy
    - Network redundancy improvements
