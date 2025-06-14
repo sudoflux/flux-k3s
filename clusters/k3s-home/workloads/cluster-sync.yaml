@@ -54,6 +54,18 @@ spec:
   wait: true # Wait for the HelmRelease to be ready
   timeout: 15m
 ---
+# Layer 2.4: Node Feature Discovery (Required for GPU plugins)
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata: { name: infra-nfd, namespace: flux-system }
+spec:
+  interval: 10m
+  path: ./clusters/k3s-home/infrastructure/04-node-feature-discovery
+  prune: true
+  sourceRef: { kind: GitRepository, name: flux-system }
+  dependsOn: [{ name: infra-cilium }]
+  wait: true
+---
 # Layer 2.5: Intel GPU Plugin
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -63,7 +75,7 @@ spec:
   path: ./clusters/k3s-home/infrastructure/05-intel-gpu-plugin
   prune: true
   sourceRef: { kind: GitRepository, name: flux-system }
-  dependsOn: [{ name: infra-cilium }]
+  dependsOn: [{ name: infra-nfd }]
 ---
 # Layer 2.6: NVIDIA GPU Plugin
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -74,7 +86,7 @@ spec:
   path: ./clusters/k3s-home/infrastructure/06-nvidia-gpu-plugin
   prune: true
   sourceRef: { kind: GitRepository, name: flux-system }
-  dependsOn: [{ name: infra-cilium }]
+  dependsOn: [{ name: infra-nfd }]
 ---
 # Layer 3: Runtime Infrastructure
 apiVersion: kustomize.toolkit.fluxcd.io/v1

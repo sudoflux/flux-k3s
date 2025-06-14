@@ -1,0 +1,19 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: node-feature-discovery
+  namespace: node-feature-discovery
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: node-feature-discovery
+      version: "0.16.x"
+      sourceRef:
+        kind: HelmRepository
+        name: nfd
+        namespace: flux-system
+  values:
+    # Deploy CRDs as part of the helm chart
+    # This ensures CRDs are available before any dependent resources
+    installCRDs: true
