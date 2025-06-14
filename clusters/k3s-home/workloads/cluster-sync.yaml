@@ -115,3 +115,12 @@ spec:
   prune: true
   sourceRef: { kind: GitRepository, name: flux-system }
   dependsOn: [{ name: infra-runtime }]
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: authentik-secret
+        optional: true
