@@ -7,7 +7,7 @@ spec:
   parentRefs:
   - name: main-gateway
     namespace: networking
-      sectionName: https
+    sectionName: https
   hostnames:
   - "longhorn.fletcherlabs.net"
   rules:
