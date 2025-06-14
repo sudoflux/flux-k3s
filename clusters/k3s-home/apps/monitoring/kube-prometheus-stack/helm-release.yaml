@@ -57,11 +57,11 @@ spec:
             cpu: 4
             memory: 10Gi
         
-        # Storage configuration - using local-path for performance
+        # Storage configuration - using longhorn-replicated for persistence
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: "local-path"
+              storageClassName: "longhorn-replicated"
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
@@ -91,10 +91,10 @@ spec:
         userKey: admin-user
         passwordKey: admin-password
       
-      # Persistence using local-path due to k3s3 CSI issues
+      # Persistence using longhorn-replicated for data durability
       persistence:
         enabled: true
-        storageClassName: "local-path"
+        storageClassName: "longhorn-replicated"
         accessModes:
           - ReadWriteOnce
         size: 10Gi
@@ -171,11 +171,11 @@ spec:
             cpu: 500m
             memory: 1Gi
         
-        # Storage using local-path due to k3s3 CSI issues
+        # Storage using longhorn-replicated for persistence
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: "local-path"
+              storageClassName: "longhorn-replicated"
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:

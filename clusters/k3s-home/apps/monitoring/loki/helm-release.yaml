@@ -30,10 +30,10 @@ spec:
           cpu: 500m
           memory: 512Mi
       
-      # Persistence using local-path due to k3s3 CSI issues
+      # Persistence using longhorn-replicated for data durability
       persistence:
         enabled: true
-        storageClass: "local-path"
+        storageClass: "longhorn-replicated"
         size: 10Gi
     
     # Loki configuration
