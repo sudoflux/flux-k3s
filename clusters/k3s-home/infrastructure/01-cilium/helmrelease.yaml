@@ -53,8 +53,20 @@ spec:
       enabled: true
       ui: 
         enabled: true
+        service:
+          type: ClusterIP
       relay: 
         enabled: true
+      metrics:
+        enabled:
+          - dns:query
+          - drop
+          - tcp
+          - flow
+          - port-distribution
+          - icmp
+        serviceMonitor:
+          enabled: false
 
     # Enable BGP Control Plane (configuration via CRDs)
     bgpControlPlane:
