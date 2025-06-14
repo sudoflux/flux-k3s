@@ -33,6 +33,10 @@ spec:
               - configMapRef:
                   name: rr-env
             env:
+              - name: PUID
+                value: "1000"  # Drop to this UID after init
+              - name: PGID
+                value: "1000"  # Drop to this GID after init
               - name: JELLYFIN_PublishedServerUrl
                 value: "https://jellyfin.fletcherlabs.net"
               # Intel GPU environment variables
@@ -41,15 +45,15 @@ spec:
               - name: INTEL_MEDIA_RUNTIME
                 value: "VAAPI"
             securityContext:
-              runAsUser: 1000
-              runAsGroup: 1000
-              runAsNonRoot: true
+              runAsUser: 0                     # Must start as root for s6-overlay
+              runAsGroup: 0                    # Must start as root for s6-overlay
+              runAsNonRoot: false              # Allow root for container init
               readOnlyRootFilesystem: false
-              allowPrivilegeEscalation: false
-              privileged: false
-              supplementalGroups: [44, 109]  # video (card0) and render (renderD128) groups
+              allowPrivilegeEscalation: false  # Prevent privilege escalation
+              privileged: false                # Critical: No privileged mode
+              supplementalGroups: [44, 109]    # video (card0) and render (renderD128) groups
               capabilities:
-                drop: ["ALL"]  # Drop all capabilities for better security
+                drop: ["ALL"]                  # Drop all capabilities
             resources:
               requests:
                 memory: 2Gi
