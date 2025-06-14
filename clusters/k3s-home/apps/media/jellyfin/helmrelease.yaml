@@ -41,15 +41,15 @@ spec:
               - name: INTEL_MEDIA_RUNTIME
                 value: "VAAPI"
             securityContext:
-              runAsUser: 0
-              runAsGroup: 0
-              runAsNonRoot: false
+              runAsUser: 1000
+              runAsGroup: 1000
+              runAsNonRoot: true
               readOnlyRootFilesystem: false
-              allowPrivilegeEscalation: true
-              privileged: true  # Required for GPU access
+              allowPrivilegeEscalation: false
+              privileged: false
+              supplementalGroups: [44, 109]  # video (card0) and render (renderD128) groups
               capabilities:
-                add:
-                  - SYS_ADMIN  # May be needed for Intel GPU
+                drop: ["ALL"]  # Drop all capabilities for better security
             resources:
               requests:
                 memory: 2Gi
