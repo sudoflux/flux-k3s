@@ -5,4 +5,4 @@ resources:
   - helmrepository.yaml
   - crds.yaml
   - operator-helmrelease.yaml
-  - helmrelease.yaml
+  - gpu-plugin-cr.yaml

@@ -22,13 +22,13 @@ spec:
         pod:
           priorityClassName: critical  # High priority for media server
           nodeSelector:
-            intel-gpu: "true"  # Run on Intel GPU nodes (k3s1 or k3s2)
+            intel.feature.node.kubernetes.io/gpu: "true"  # Match NFD label for Intel GPU nodes
         containers:
           main:
             enabled: true
             image:
               repository: lscr.io/linuxserver/jellyfin
-              tag: latest
+              tag: 10.9.11  # Pinned version for stability
             envFrom:
               - configMapRef:
                   name: rr-env
