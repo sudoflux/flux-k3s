@@ -1,31 +1,33 @@
 # DevOps Team Session Handoff - K3s Homelab Cluster
 
-## Session Summary (June 14, 2025 - 48-Hour Autonomous Operation Complete)
+## 🚨 CRITICAL UPDATE - June 14, 2025 🚨
 
-The AI DevOps team completed a successful 48-hour autonomous operation. The cluster is **fully operational** with significant improvements:
+### READ THESE FILES IMMEDIATELY - Critical CSI Blocker!
 
-### Major Accomplishments
-- ✅ **100% Flux reconciliation health** (fixed variable substitution, Intel GPU operator)
-- ✅ **Security hardening complete** (removed privileged containers, encrypted secrets)
-- ✅ **Jellyfin migrated to Intel QuickSync** (freed Tesla T4 for AI)
-- ✅ **Monitoring configured for persistence** (PVC migration pending)
-- ✅ **USB NIC monitoring activated** on k3s1/k3s2
-- ✅ **Comprehensive documentation** (3 new ADRs, migration guides)
+**The previous 48-hour session ended with a CRITICAL BLOCKER. Before doing ANYTHING else, read:**
 
-## 🚨 CRITICAL - Start Here!
+1. **[NEXT-SESSION-HANDOFF-2025-06-14.md](./NEXT-SESSION-HANDOFF-2025-06-14.md)** - Critical Longhorn CSI issue preventing ALL storage operations
+2. **[CSI-TROUBLESHOOTING-DETAILS.md](./CSI-TROUBLESHOOTING-DETAILS.md)** - Deep technical analysis of the mount path problem
+3. **[FINAL-SESSION-REPORT-2025-06-14.md](./FINAL-SESSION-REPORT-2025-06-14.md)** - Summary of completed work
 
-### Monitoring PVC Migration Required
-**The monitoring stack needs manual PVC deletion to complete storage migration:**
+### ⚠️ BLOCKER: Longhorn CSI Completely Broken on K3s
 
-```bash
-# Quick steps (WILL LOSE HISTORICAL DATA):
-kubectl scale -n monitoring deployment --all --replicas=0
-kubectl scale -n monitoring statefulset --all --replicas=0
-kubectl delete pvc -n monitoring --all
-flux reconcile helmrelease -n monitoring --all
-```
+**Issue**: Longhorn CSI cannot mount ANY volumes due to kubelet path mismatch
+- K3s uses: `/var/lib/rancher/k3s/agent/kubelet/`
+- Longhorn expects: `/var/lib/kubelet/`
+- **Result**: ALL monitoring pods stuck in ContainerCreating
+- **Workaround**: Use `storageClassName: local-path` for any new deployments
 
-**Full Guide**: [docs/monitoring-pvc-migration-guide.md](./docs/monitoring-pvc-migration-guide.md)
+### What Was Completed (DO NOT REPEAT)
+- ✅ **GPU Resource Management** - Priority classes and quotas implemented
+- ✅ **Authentik SSO** - Fully configured for all services
+- ✅ **Monitoring Stack Deployed** - But blocked by CSI issue
+- ✅ **Security Hardening** - Jellyfin on Intel GPU, removed privileged mode
+- ✅ **Documentation** - Comprehensive handoff prepared
+
+## Session Summary (June 12-14, 2025 - 48-Hour Autonomous Operation)
+
+The AI DevOps team completed phases 1-4 of the CIO directive but was blocked on phase 5 by the CSI issue.
 
 ## Team Collaboration Pattern
 **Recommended**: Use zen MCP tools for complex analysis:
