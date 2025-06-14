@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - helmrelease.yaml
   - bgp-config.yaml  # BGP and L2 announcement configs
-  - hubble-ingress.yaml  # Hubble UI ingress
+  - hubble-httproute.yaml  # Hubble UI HTTPRoute
