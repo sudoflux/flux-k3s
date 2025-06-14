@@ -5,6 +5,7 @@ metadata:
   name: k3s1
   namespace: longhorn-system
 spec:
+  allowScheduling: true
   disks:
     default-disk-k3s1:
       path: /var/lib/longhorn
@@ -21,6 +22,7 @@ metadata:
   name: k3s2
   namespace: longhorn-system
 spec:
+  allowScheduling: true
   disks:
     default-disk-k3s2:
       path: /var/lib/longhorn
@@ -37,6 +39,7 @@ metadata:
   name: k3s3
   namespace: longhorn-system
 spec:
+  allowScheduling: true
   disks:
     # Default disk for general use
     default-disk-k3s3:
