@@ -22,12 +22,7 @@ spec:
         pod:
           priorityClassName: critical  # High priority for media server
           nodeSelector:
-            gpu: nvidia  # Run on the GPU node
-          tolerations:
-            - key: gpu
-              operator: Equal
-              value: nvidia
-              effect: NoSchedule
+            intel-gpu: "true"  # Run on Intel GPU nodes (k3s1 or k3s2)
         containers:
           main:
             enabled: true
@@ -40,6 +35,11 @@ spec:
             env:
               - name: JELLYFIN_PublishedServerUrl
                 value: "https://jellyfin.fletcherlabs.net"
+              # Intel GPU environment variables
+              - name: LIBVA_DRIVER_NAME
+                value: "iHD"  # Intel Media Driver for VAAPI
+              - name: INTEL_MEDIA_RUNTIME
+                value: "VAAPI"
             securityContext:
               runAsUser: 0
               runAsGroup: 0
@@ -47,15 +47,18 @@ spec:
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: true
               privileged: true  # Required for GPU access
+              capabilities:
+                add:
+                  - SYS_ADMIN  # May be needed for Intel GPU
             resources:
               requests:
                 memory: 2Gi
                 cpu: 1
-                nvidia.com/gpu: 1  # Request 1 NVIDIA GPU
+                gpu.intel.com/i915: "1"  # Request Intel GPU
               limits:
                 memory: 8Gi
                 cpu: 4
-                nvidia.com/gpu: 1  # Limit to 1 NVIDIA GPU
+                gpu.intel.com/i915: "1"  # Limit Intel GPU
     service:
       main:
         controller: main
@@ -90,28 +93,11 @@ spec:
         sizeLimit: 10Gi
         globalMounts:
           - path: /cache
-      # NVIDIA GPU device mounts
-      nvidia:
+      # Intel GPU device mounts
+      dri:
         enabled: true
         type: hostPath
-        hostPath: /dev/nvidia0
+        hostPath: /dev/dri
         globalMounts:
-          - path: /dev/nvidia0
-      nvidia-uvm:
-        enabled: true
-        type: hostPath
-        hostPath: /dev/nvidiactl
-        globalMounts:
-          - path: /dev/nvidiactl
-      nvidia-uvm-tools:
-        enabled: true
-        type: hostPath
-        hostPath: /dev/nvidia-uvm
-        globalMounts:
-          - path: /dev/nvidia-uvm
-      nvidia-uvm-modeset:
-        enabled: true
-        type: hostPath
-        hostPath: /dev/nvidia-uvm-tools
-        globalMounts:
-          - path: /dev/nvidia-uvm-tools
+          - path: /dev/dri
+            readOnly: false
