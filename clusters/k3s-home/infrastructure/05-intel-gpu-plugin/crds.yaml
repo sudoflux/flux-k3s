@@ -1,0 +1,49 @@
+# Intel Device Plugin CRDs
+# These are required for the Intel GPU plugin to work
+# Source: https://github.com/intel/intel-device-plugins-for-kubernetes
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: gpudeviceplugins.deviceplugin.intel.com
+spec:
+  group: deviceplugin.intel.com
+  names:
+    kind: GpuDevicePlugin
+    plural: gpudeviceplugins
+    singular: gpudeviceplugin
+  scope: Cluster
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              nodeSelector:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              image:
+                type: string
+              initImage:
+                type: string
+              sharedDevNum:
+                type: integer
+                minimum: 1
+              logLevel:
+                type: integer
+                minimum: 0
+              resourceManager:
+                type: boolean
+              enableMonitoring:
+                type: boolean
+              preferredAllocationPolicy:
+                type: string
+                enum:
+                - packed
+                - balanced
+                - none
