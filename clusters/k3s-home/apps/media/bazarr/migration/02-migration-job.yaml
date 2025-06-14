@@ -10,6 +10,8 @@ spec:
         app: bazarr-migration
     spec:
       restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/hostname: k3s2
       containers:
       - name: migrate
         image: busybox:latest
