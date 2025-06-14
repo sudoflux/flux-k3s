@@ -78,17 +78,23 @@ Storage is configured with different backends for specific use cases:
 - **NFS (Network Attached Storage)**: 
   - **Source**: Dell R730 server
   - **App Configs**: `/mnt/nvme_storage` - Fast NVMe-backed storage for application configurations
-  - **Media Files**: `/mnt/rust/media` - Large HDD array for media libraries
-  - **Use Case**: Shared storage accessible by all nodes, ideal for stateful apps
+  - **Media Files**: `/mnt/rust/media` - Large HDD array for media libraries (30TB)
+  - **Use Case**: Shared storage accessible by all nodes, ideal for media libraries
+  - **Network**: Shared 2.5GbE network (potential bottleneck)
 
 - **Longhorn (Distributed Block Storage)**:
   - **Type**: Cloud-native distributed storage with automatic replication
   - **Use Case**: Persistent volumes requiring high availability
-  - **Classes**: `longhorn-optane`, `longhorn-nvme`, `longhorn-sas-ssd`, `longhorn-replicated`
+  - **Classes**: 
+    - `longhorn` - Default, available on all nodes
+    - `longhorn-optane` - Ultra-fast storage (k3s3 only)
+    - `longhorn-nvme` - High-performance NVMe (k3s3 only)
+    - `longhorn-sas-ssd` - Standard SSD storage (k3s3 only)
+  - **Status**: ✅ Fully operational on all nodes
 
 - **Local Path (Node Storage)**:
   - **Type**: Direct node disk access, no replication
-  - **Use Case**: Temporary data, high IOPS workloads
+  - **Use Case**: Temporary data, caches, currently monitoring stack
   - **Note**: k3s3 has tiered local storage (Optane, NVMe, SAS SSDs)
 
 ### Important K3s Configuration
@@ -133,10 +139,11 @@ clusters/k3s-home/
 ## Quick Start
 
 ### Access Services
-All services are accessible via HTTP at their respective domains:
-- Media services: `http://<service>.fletcherlabs.net`
-- Grafana: `http://grafana.fletcherlabs.net` (admin / encrypted password)
-- Authentik: `http://authentik.fletcherlabs.net` (initial setup required)
+All services are accessible via HTTPS with valid Let's Encrypt certificates:
+- Media services: `https://<service>.fletcherlabs.net`
+- Grafana: `https://grafana.fletcherlabs.net` (admin / check SOPS secret)
+- Longhorn UI: `https://longhorn.fletcherlabs.net`
+- Authentik: `https://authentik.fletcherlabs.net` (needs initial setup)
 
 ### Managing the Cluster
 ```bash
@@ -250,6 +257,7 @@ spec:
   parentRefs:
     - name: main-gateway
       namespace: networking
+      sectionName: https  # TLS termination
   hostnames:
     - "app.fletcherlabs.net"
   rules:
@@ -257,6 +265,10 @@ spec:
         - name: app-service
           port: 8080
 ```
+
+**Note**: Cilium Gateway API requires:
+- `enable-gateway-api-alpn: "true"` for HTTP/2 and gRPC support
+- `enable-gateway-api-app-protocol: "true"` for backend protocol selection
 
 ## Deployed Services
 
@@ -293,20 +305,25 @@ spec:
 
 ## Recent Changes
 
+### 2025-06-14
+- Resolved k3s1 networking incident (initially misdiagnosed as CSI issue)
+- Fixed HTTPS/TLS with proper cert-manager configuration
+- Enabled Cilium Gateway API ALPN and app-protocol support
+- Fixed Longhorn node scheduling for k3s3
+- Completed Backblaze B2 offsite backup integration
+- Major documentation overhaul with AAR (After Action Review) format
+
 ### 2025-06-13
 - Completed Week 3 observability implementation
 - Deployed kube-prometheus-stack with Grafana
 - Added NVIDIA DCGM exporter for GPU monitoring
 - Deployed Loki for centralized log aggregation
 - Fixed Flux dependency chain issues
-- Worked around k3s3 Longhorn CSI driver issues
 
-### 2025-06-12
-- Added k3s3 node (R630) with NVIDIA Tesla T4 GPU
-- Configured local storage on k3s3 with tiered approach (Optane, NVMe, SAS SSDs)
-- Migrated Whisparr to k3s3 with Optane storage for better performance
-- Disabled K3s ServiceLB to allow Cilium to handle all LoadBalancer services
-- Fixed Gateway API connectivity issues
+### Known Issues
+- Flux reconciliation: Authentik secret missing, Intel GPU CRDs not installed
+- Monitoring stack using ephemeral local-path storage (should migrate to Longhorn)
+- No HA: Single control plane, single storage server
 
 ## Important Notes
 
@@ -314,11 +331,12 @@ spec:
 2. **Authentik 2FA**: Do not enable 2FA/forward auth until all infrastructure work is complete
 3. **Storage Classes**: 
    - `local-path`: Default K3s local storage (no replication)
+   - `longhorn`: Default replicated storage (all nodes)
    - `longhorn-optane`: Ultra-fast storage on k3s3 only
-   - `longhorn-nvme`: High-performance NVMe storage
-   - `longhorn-sas-ssd`: Standard SSD storage
-   - `longhorn-replicated`: Replicated across multiple nodes
-4. **GPU Sharing**: All AI workloads share the Tesla T4 via time-slicing
+   - `longhorn-nvme`: High-performance NVMe storage (k3s3 only)
+   - `longhorn-sas-ssd`: Standard SSD storage (k3s3 only)
+4. **GPU Sharing**: Tesla T4 uses time-slicing (nvidia.com/gpu: 4) - no memory isolation between workloads
+5. **Backups**: Velero backs up to local MinIO and offsite Backblaze B2 daily
 
 ## Documentation
 
