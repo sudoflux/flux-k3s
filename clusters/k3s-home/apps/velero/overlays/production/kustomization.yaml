@@ -5,7 +5,7 @@ resources:
   - ../../base
   - helm-release.yaml
   - minio.yaml
-  - credentials/wasabi-secret.yaml
+  - credentials/b2-secret.yaml
   - credentials/minio-secret.yaml
   - credentials/minio-root-secret.yaml
   - locations/backup-storage-locations.yaml

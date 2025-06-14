@@ -49,7 +49,7 @@ spec:
     # CSI support is now built into Velero 1.14+
     initContainers:
     - name: velero-plugin-for-aws
-      image: velero/velero-plugin-for-aws:v1.10.0
+      image: velero/velero-plugin-for-aws:v1.8.2  # Downgraded for B2 compatibility
       imagePullPolicy: IfNotPresent
       volumeMounts:
       - mountPath: /target

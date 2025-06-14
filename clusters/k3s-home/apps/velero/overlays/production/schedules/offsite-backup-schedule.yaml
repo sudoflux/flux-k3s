@@ -6,7 +6,7 @@ metadata:
   namespace: velero
 spec:
   schedule: "0 4 * * 0"  # 4 AM every Sunday
-  paused: true  # Pause until Wasabi is configured
+  paused: true  # Pause until B2 is configured
   template:
     includedNamespaces:
     - authentik
@@ -14,7 +14,7 @@ spec:
     - flux-system
     - media
     - ai
-    storageLocation: wasabi-offsite
+    storageLocation: b2-offsite
     volumeSnapshotLocations:
     - longhorn-csi
     ttl: "2160h"  # Retain for 90 days
@@ -27,9 +27,9 @@ metadata:
   namespace: velero
 spec:
   schedule: "0 5 1 * *"  # 5 AM on the 1st of each month
-  paused: true  # Pause until Wasabi is configured
+  paused: true  # Pause until B2 is configured
   template:
-    storageLocation: wasabi-offsite
+    storageLocation: b2-offsite
     volumeSnapshotLocations:
     - longhorn-csi
     ttl: "8760h"  # Retain for 1 year

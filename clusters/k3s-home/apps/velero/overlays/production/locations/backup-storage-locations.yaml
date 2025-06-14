@@ -17,26 +17,29 @@ spec:
     key: cloud
   default: true
 ---
-# Offsite Wasabi backup storage location
+# Offsite Backblaze B2 backup storage location
 # TODO: IMPORTANT - Configure the following before enabling offsite backups:
-# 1. Update bucket name to your actual Wasabi bucket
-# 2. Update region to your Wasabi region
-# 3. Update wasabi-secret.yaml with real credentials
-# 4. Unpause the offsite backup schedules
+# 1. Update bucket name to your actual B2 bucket
+# 2. Update region to your B2 region (e.g., us-west-004)
+# 3. Update s3Url to your B2 endpoint
+# 4. Update b2-secret.yaml with real credentials
+# 5. Unpause the offsite backup schedules
 apiVersion: velero.io/v1
 kind: BackupStorageLocation
 metadata:
-  name: wasabi-offsite
+  name: b2-offsite
   namespace: velero
 spec:
   provider: aws
   objectStorage:
-    bucket: your-wasabi-bucket-name  # TODO: CHANGE THIS
+    bucket: your-b2-bucket-name  # TODO: CHANGE THIS
   config:
-    region: us-east-1  # Or your Wasabi region
+    region: us-west-004  # TODO: Update to your B2 region
     s3ForcePathStyle: "true"
-    s3Url: https://s3.wasabisys.com  # Or your B2 S3 endpoint
+    s3Url: https://s3.us-west-004.backblazeb2.com  # TODO: Update to your B2 endpoint
+    checksumAlgorithm: ""  # CRITICAL: Empty string for B2 compatibility
+    objectLockEnabled: "true"  # Enable if you configured Object Lock on the bucket
   credential:
-    name: wasabi-credentials
+    name: b2-credentials
     key: cloud
   default: false
