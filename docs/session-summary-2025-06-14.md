@@ -52,9 +52,13 @@ The AI DevOps team successfully completed all Priority 0 (Critical) and Priority
 - Loki: local-path → longhorn-replicated (10Gi)
 - Alertmanager: local-path → longhorn-replicated (5Gi)
 
-# Removed Components
-- Intel GPU Plugin (not needed, no Intel GPUs in use)
+# Fixed Components
+- Intel GPU Plugin: Added missing CRD for QuickSync support
 ```
+
+### Post-Session Correction
+- **Intel GPU Plugin**: Initially removed in error, then restored with proper CRD support
+- **Reason**: QuickSync hardware acceleration needed for Jellyfin on k3s1/k3s2
 
 ### Git Statistics
 - Commits: 8
