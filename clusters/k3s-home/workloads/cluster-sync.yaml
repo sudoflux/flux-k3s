@@ -66,17 +66,6 @@ spec:
   dependsOn: [{ name: infra-cilium }]
   wait: true
 ---
-# Layer 2.5: Intel GPU Plugin
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata: { name: infra-intel-gpu, namespace: flux-system }
-spec:
-  interval: 10m
-  path: ./clusters/k3s-home/infrastructure/05-intel-gpu-plugin
-  prune: true
-  sourceRef: { kind: GitRepository, name: flux-system }
-  dependsOn: [{ name: infra-nfd }]
----
 # Layer 2.6: NVIDIA GPU Plugin
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -98,7 +87,6 @@ spec:
   prune: true
   sourceRef: { kind: GitRepository, name: flux-system }
   dependsOn: 
-    - { name: infra-intel-gpu } # Depends on Intel GPU plugin
     - { name: infra-nvidia-gpu } # Depends on NVIDIA GPU plugin
   decryption:
     provider: sops
