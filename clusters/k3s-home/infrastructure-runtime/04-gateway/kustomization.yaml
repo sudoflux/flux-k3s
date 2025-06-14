@@ -6,3 +6,4 @@ resources:
   - gateway.yaml
   - wildcard-certificate.yaml
   - cloudflare-api-token-secret.yaml
+  - http-redirect.yaml
