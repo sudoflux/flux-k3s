@@ -20,6 +20,28 @@ This document tracks immediate priorities and actionable tasks for the K3s clust
   - Loki: Now using longhorn-replicated (10Gi)
   - Updated documentation to reflect Longhorn working on k3s3
 
+## Priority 0 - CRITICAL: Monitoring PVC Migration Required! 🚨
+
+### Complete Monitoring Stack Storage Migration
+**Issue:** PVCs have immutable storage classes. Manual deletion required.
+
+**Quick Steps:**
+```bash
+# 1. Scale down
+kubectl scale -n monitoring deployment --all --replicas=0
+kubectl scale -n monitoring statefulset --all --replicas=0
+
+# 2. Delete PVCs
+kubectl delete pvc -n monitoring --all
+
+# 3. Reconcile
+flux reconcile helmrelease -n monitoring --all
+```
+
+**Full Guide:** See [monitoring-pvc-migration-guide.md](monitoring-pvc-migration-guide.md)
+
+⚠️ **Data Loss Warning:** Historical metrics will be lost. This is expected.
+
 ## Priority 1 - High Priority Tasks (Next Session)
 
 ### 1. GPU Resource Management
@@ -54,19 +76,11 @@ This document tracks immediate priorities and actionable tasks for the K3s clust
 - [ ] Document configuration
 - [ ] **DO NOT ENABLE 2FA** until cluster fully stable
 
-### 3. Activate USB NIC Monitoring
-**Objective:** Enable proactive monitoring of USB network interfaces.
-
-**Steps:**
-- [ ] SSH to k3s1 and k3s2
-- [ ] Enable and start the monitoring service:
-  ```bash
-  sudo systemctl enable usb-nic-monitor.service
-  sudo systemctl start usb-nic-monitor.service
-  sudo systemctl status usb-nic-monitor.service
-  ```
-- [ ] Verify logs: `sudo journalctl -u usb-nic-monitor -f`
-- [ ] Test alert mechanism
+### 3. ~~Activate USB NIC Monitoring~~ ✅ COMPLETED
+**Status:** Completed by AI team on June 14, 2025
+- Services running on both k3s1 and k3s2
+- Monitoring /dev/dri and network interfaces
+- Logs available at `/var/log/usb-nic-monitor.log`
 
 ## Priority 2 - Medium Priority Tasks
 
