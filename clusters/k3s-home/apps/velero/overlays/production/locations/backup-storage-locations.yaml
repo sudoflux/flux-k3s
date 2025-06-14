@@ -37,8 +37,6 @@ spec:
     region: us-west-001
     s3ForcePathStyle: "true"
     s3Url: https://s3.us-west-001.backblazeb2.com
-    checksumAlgorithm: ""  # CRITICAL: Empty string for B2 compatibility
-    objectLockEnabled: "false"
   credential:
     name: b2-credentials
     key: cloud
