@@ -15,8 +15,7 @@ spec:
     - media
     - ai
     storageLocation: b2-offsite
-    volumeSnapshotLocations:
-    - longhorn-csi
+    snapshotVolumes: false  # B2 doesn't support volume snapshots
     ttl: "2160h"  # Retain for 90 days
 ---
 # Monthly full backup offsite
@@ -30,6 +29,5 @@ spec:
   paused: true  # Pause until B2 is configured
   template:
     storageLocation: b2-offsite
-    volumeSnapshotLocations:
-    - longhorn-csi
+    snapshotVolumes: false  # B2 doesn't support volume snapshots
     ttl: "8760h"  # Retain for 1 year
