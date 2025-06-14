@@ -32,13 +32,13 @@ metadata:
 spec:
   provider: aws
   objectStorage:
-    bucket: your-b2-bucket-name  # TODO: CHANGE THIS
+    bucket: k3s-cluster-backups
   config:
-    region: us-west-004  # TODO: Update to your B2 region
+    region: us-west-001
     s3ForcePathStyle: "true"
-    s3Url: https://s3.us-west-004.backblazeb2.com  # TODO: Update to your B2 endpoint
+    s3Url: https://s3.us-west-001.backblazeb2.com
     checksumAlgorithm: ""  # CRITICAL: Empty string for B2 compatibility
-    objectLockEnabled: "true"  # Enable if you configured Object Lock on the bucket
+    objectLockEnabled: "false"
   credential:
     name: b2-credentials
     key: cloud
