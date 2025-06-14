@@ -13,5 +13,5 @@ spec:
   interval: 30m
   timeout: 10m
   dependsOn:
-    - name: nvidia-gpu-plugin
-    - name: intel-gpu-plugin
+    - name: infra-nvidia-gpu
+    - name: infra-intel-gpu
