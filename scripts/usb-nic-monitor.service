@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/home/josh/flux-k3s/scripts/monitor-usb-nic.sh
+ExecStart=/usr/local/bin/monitor-usb-nic.sh
 Restart=on-failure
 RestartSec=30
 StandardOutput=journal
