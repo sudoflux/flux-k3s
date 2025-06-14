@@ -1,8 +1,10 @@
 # K3s Homelab Cluster Setup Documentation
 
-## 📊 Cluster Status Update (June 14, 2025)
+## 📊 Cluster Health Status
 
-**UPDATE**: The cluster has recovered from a networking incident on node k3s1. All nodes are now operational with Longhorn storage functioning correctly. See [Incident History](#incident-history) for details.
+**Status**: ✅ All Systems Operational  
+**Last Update**: June 14, 2025  
+**Last Incident**: k3s1 networking failure (resolved) - See [AAR Log](#aar-log) for details
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -66,47 +68,52 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 - **K3s**: v1.32.5+k3s1
 - **CNI**: Cilium with eBPF
 - **GitOps**: Flux CD v2
-- **Storage**: Longhorn (✅ operational) + NFS
+- **Storage**: Longhorn v1.6.2 + NFS
+  - See [Storage Architecture](#storage-architecture) for tier details
 - **Ingress**: Gateway API with Cilium
 - **Backup**: Velero with MinIO local storage
 
 ### Networking
+- **CNI**: Cilium v1.15.6 with eBPF
+  - **Mode**: Tunnel (VXLAN) - `routing-mode: tunnel`
+  - **Kube-proxy**: Replaced by eBPF (no iptables)
+  - **Gateway API**: v1.1.0 with ALPN and app-protocol support enabled
 - **Gateway IP**: 192.168.10.224
 - **IP Pool**: 192.168.10.224/28
-- **BGP**: AS 64513 peering with router at 192.168.10.1
+- **BGP**: AS 64512 (cluster) ↔ AS 64513 (router at 192.168.10.1)
 - **Domains**: All services use `*.fletcherlabs.net`
 - **TLS**: cert-manager with Let's Encrypt (HTTP-01 challenges)
+- **Network Links**: All nodes on shared 2.5GbE (potential bottleneck for NFS)
 
-## Current Issues & Status
+## 🟡 Active Work Items & Known Issues
 
-### 🟢 Resolved Issues
+### Priority 0 - Critical
+1. **Flux Reconciliation Failures**
+   - Authentik: Missing secret `authentik/authentik-secret`
+   - Intel GPU Plugin: CRDs not installed
+   - **Impact**: GitOps loop incomplete
+   - **Next Steps**: See [next-session-tasks.md](docs/next-session-tasks.md#flux-reconciliation)
 
-1. **Node k3s1 Networking Incident (RESOLVED)**
-   - **What Happened**: Node k3s1 experienced networking issues preventing pods from reaching services
-   - **Symptoms**: Longhorn CSI plugin and manager pods in CrashLoopBackOff
-   - **Root Cause**: Temporary network connectivity issues (timeouts to cluster services)
-   - **Resolution**: Node isolation, diagnosis, and automatic recovery
-   - **Current Status**: ✅ All nodes operational with CSI drivers registered
+### Priority 1 - High
+2. **k3s1 Network Failure Root Cause**
+   - **Status**: Incident resolved but root cause unknown
+   - **Risk**: May recur without understanding underlying issue
+   - **Next Steps**: Analyze logs from incident timeframe
 
-2. **Velero Backup Configuration (RESOLVED)**
-   - **MinIO Issues**: Fixed secret configuration mismatches
-   - **B2 Integration**: Successfully configured and tested
-   - **Current Status**: ✅ Backups working to both local MinIO and B2 offsite
+3. **Monitoring Stack on Ephemeral Storage**
+   - **Current**: Using local-path (non-replicated)
+   - **Risk**: Data loss on pod restart/node failure
+   - **Next Steps**: Migrate to Longhorn storage classes
 
-### 🟡 Important But Non-Critical Issues
-
-1. **No High Availability**
-   - Single control plane node
+### Priority 2 - Medium  
+4. **No High Availability**
+   - Single control plane node (k3s-master1)
    - Single storage server (R730)
-   - No redundancy for critical services
+   - **Impact**: No failover capability
 
-2. **Monitoring Stack on Local Storage**
-   - Using local-path instead of Longhorn due to CSI issues
-   - Risk of data loss on pod restart
-
-3. **Authentik Not Configured**
-   - Deployed but needs initial setup
-   - ⚠️ DO NOT enable 2FA until all infrastructure work is complete
+5. **Authentik Initial Configuration**
+   - **Status**: Deployed but not configured
+   - **Note**: DO NOT enable 2FA until all infrastructure work complete
 
 ## Deployed Applications
 
@@ -163,7 +170,7 @@ Located in `/home/josh/flux-k3s/docs/`:
 | Week 1 | Security & Auth | [week1-security-summary.md](../week1-security-summary.md) | ✅ Complete |
 | Week 2 | Storage & Backup | [week2-storage-backup-summary.md](../week2-storage-backup-summary.md) | ✅ Complete |
 | Week 3 | Observability | [week3-observability-summary.md](docs/week3-observability-summary.md) | ✅ Complete |
-| Week 4 | TLS & Certificates | In Progress | 🔄 Current Week |
+| Week 4 | TLS & Gateway API | [week4-tls-gateway-summary.md](docs/week4-tls-gateway-summary.md) | ✅ Complete |
 
 ### 🚀 Future Planning
 | Document | Purpose | Priority |
@@ -174,36 +181,72 @@ Located in `/home/josh/flux-k3s/docs/`:
 
 ## Implementation Roadmap
 
-### Current Week (Week 4) - June 10-16, 2025
-**Focus**: Critical Issue Resolution & TLS Implementation
+### Completed: Week 4 (June 10-16, 2025)
+**Focus**: TLS Implementation & Incident Response
+**Outcome**: All critical issues resolved, HTTPS working, comprehensive documentation updates
 
-#### Completed This Week:
-- ✅ TLS/HTTPS configuration with cert-manager
-- ✅ Let's Encrypt ClusterIssuer setup
-- ✅ HTTPRoute TLS termination
-- ✅ Velero local backup with MinIO
-- ✅ Backblaze B2 bucket creation
+See [week4-tls-gateway-summary.md](docs/week4-tls-gateway-summary.md) for details.
 
-#### Blocked/In Progress:
-- ❌ Longhorn CSI driver fix (critical blocker)
-- ⏸️ NFS to Longhorn migrations
-- ⏸️ Velero offsite backup integration
-- ⏸️ Authentik configuration
+### Current Week: Week 5 (June 17-23, 2025)
+**Focus**: GitOps Health & System Stability
 
-### Upcoming Weeks
+#### Priority 0 - Critical (Must Fix)
+1. **Fix Flux Reconciliation**
+   - Resolve Authentik secret issue
+   - Install Intel GPU CRDs or remove HelmRelease
+   - Restore full GitOps automation
 
-#### Week 5 (June 17-23, 2025) - Storage Resolution
-1. **Fix Longhorn CSI Issue**
-   - Option A: Downgrade K3s to v1.30.x
-   - Option B: Upgrade Longhorn to v1.9.0
-   - Option C: Switch to alternative storage (OpenEBS/Rook)
-2. **Complete Storage Migrations**
-   - Migrate all config PVCs to Longhorn
-   - Test backup/restore procedures
-3. **Finalize Backup Strategy**
-   - Configure Velero offsite to Backblaze B2
-   - Implement automated backup schedules
-   - Test disaster recovery
+#### Priority 1 - High (This Week)
+2. **k3s1 Root Cause Analysis**
+   - Analyze logs from incident timeframe
+   - Check for resource exhaustion
+   - Document findings in AAR format
+
+3. **Monitoring Storage Migration**
+   - Backup current data
+   - Migrate Prometheus/Grafana/Loki to Longhorn
+   - Verify data persistence
+
+#### Priority 2 - Medium (If Time Permits)
+4. **Authentik Configuration**
+   - Initial setup (no 2FA)
+   - Create OAuth2/OIDC providers
+   - Document configuration
+
+### Future Weeks
+
+#### Week 6 (June 24-30, 2025) - Security & Authentication
+1. **Complete Authentik Setup**
+   - Application integrations
+   - RBAC policies
+   - Audit logging
+
+2. **Security Hardening**
+   - Network policies
+   - Pod security standards
+   - Secret rotation procedures
+
+#### Week 7 (July 1-7, 2025) - High Availability Planning
+1. **Multi-Master Research**
+   - Requirements documentation
+   - Migration strategy
+   - Risk assessment
+
+2. **Storage Redundancy**
+   - Distributed storage evaluation
+   - NFS failover options
+   - Backup strategy improvements
+
+#### Week 8 (July 8-14, 2025) - WSL2 GPU Node
+*Pending 10GbE NIC installation*
+1. **Hardware Setup**
+   - Install network card
+   - Configure connectivity
+
+2. **WSL2 K3s Agent**
+   - Run setup script
+   - Join cluster with RTX 4090
+   - Migrate AI workloads
 
 #### Week 6 (June 24-30, 2025) - Authentication & Security
 1. **Authentik Setup**
@@ -274,6 +317,13 @@ kubectl get httproute -A
 - **Cluster Manifests**: `/clusters/k3s-home/`
 - **Documentation**: `/docs/`
 
+### SOPS Workflow
+1. **Edit encrypted files**: `sops path/to/secret.yaml`
+2. **Encrypt new files**: `sops --encrypt --in-place path/to/secret.yaml`
+3. **Public key configuration**: Defined in `.sops.yaml` at repo root
+4. **Age key location**: `~/.config/sops/age/keys.txt`
+5. **Backup reminder**: This key is critical for cluster recovery!
+
 ### Important URLs
 - **Gateway IP**: https://192.168.10.224
 - **All Services**: https://*.fletcherlabs.net
@@ -343,32 +393,82 @@ For critical issues:
 3. Consult team via Slack/Discord
 4. Consider VM snapshot rollback if needed
 
-## Incident History
+## Storage Architecture
 
-### June 14, 2025 - k3s1 Networking Failure
-**Initial Diagnosis**: Incorrectly identified as K3s v1.32.5 CSI driver bug  
-**Actual Issue**: Node k3s1 experienced networking problems preventing pods from reaching services  
-**Symptoms**: 
-- Longhorn CSI plugin: 45+ restarts with "context deadline exceeded" errors
-- Longhorn manager: 17+ restarts
-- Pods unable to reach longhorn-backend service
+### Storage Tiers
+| Tier | Technology | Node(s) | Performance | Use Case |
+|------|------------|---------|-------------|----------|
+| **Replicated Block** | Longhorn | All Workers | High IOPS, Replicated | App configs, databases, critical state |
+| | └ longhorn-optane | k3s3 | Ultra-high IOPS | Performance-critical apps |
+| | └ longhorn-nvme | k3s3 | High IOPS | General app storage |
+| | └ longhorn-sas-ssd | k3s3 | Medium IOPS | Bulk app storage |
+| | └ longhorn | k3s1, k3s2 | Standard | Default storage class |
+| **Bulk Media** | NFS | R730 | High throughput | Media files (30TB), large datasets |
+| **Ephemeral** | local-path | All Workers | Fast, non-replicated | Caches, temp data, monitoring* |
 
-**Resolution**:
-1. Cordoned k3s1 to isolate the issue
-2. Fixed unrelated MinIO secret configuration issues
-3. Deleted conflicting VSL configuration
-4. Network connectivity self-recovered
-5. Verified with canary pod testing
-6. Uncordoned k3s1
+*Monitoring stack currently on local-path, should migrate to Longhorn
 
-**Lessons Learned**:
-- Node-specific issues can masquerade as cluster-wide problems
-- Always verify actual error logs before assuming version incompatibility
-- Isolating problematic nodes can allow self-recovery
+### GPU Architecture
+| Node | GPU | Mode | Resources | Limitations |
+|------|-----|------|-----------|-------------|
+| k3s3 | Tesla T4 16GB | Time-slicing | nvidia.com/gpu: 4 | No memory isolation between workloads |
+| Desktop* | RTX 4090 24GB | N/A | TBD | Planned addition via WSL2 |
+
+*Requires 10GbE NIC installation first
+
+## AAR Log
+
+### AAR: k3s1 Networking Failure (June 14, 2025)
+
+**1. What Happened:** Node k3s1 lost connectivity to cluster services, causing Longhorn pods to crash repeatedly. Initially misdiagnosed as K3s v1.32.5 CSI driver bug.
+
+**2. Timeline:**
+- Detection: Longhorn pods in CrashLoopBackOff with "context deadline exceeded"
+- Initial diagnosis: Assumed CSI driver incompatibility
+- Investigation: Discovered all nodes had CSI drivers registered
+- Root cause found: k3s1 networking issue
+- Resolution: Cordoned k3s1, allowed self-recovery, verified with canary pod
+
+**3. Root Cause Analysis:**
+- **Direct Cause:** Network service failure on k3s1 (specific trigger unknown)
+- **Contributing Factors:** 
+  - Lack of node-level network monitoring
+  - CSI error messages masked underlying network issue
+
+**4. What Went Well / What Could Be Improved:**
+- ✅ **Well:** Node isolation prevented cluster-wide impact
+- ✅ **Well:** Discovered and fixed unrelated issues (MinIO secrets, VSL config)
+- ⚠️ **Improve:** Started with application layer (CSI) instead of network layer
+- ⚠️ **Improve:** No automated alerting for node network health
+
+**5. Action Items & Lessons Learned:**
+- **Action:** Investigate k3s1 logs for root cause (Owner: AI Team, Priority: P1)
+- **Action:** Create node network health monitoring (Owner: AI Team, Priority: P2)
+- **Action:** Update troubleshooting guides to check connectivity first (Owner: AI Team, Complete)
+- **Lesson:** Always verify Layer 3/4 connectivity before debugging application protocols
+- **Lesson:** Node-specific issues can present as cluster-wide symptoms
+
+### AAR: Gateway HTTPS/TLS Resolution (June 14, 2025)
+
+**1. What Happened:** HTTPS services were inaccessible with connection reset errors. Fixed by enabling ALPN and app-protocol support in Cilium.
+
+**2. Root Cause Analysis:**
+- **Direct Cause:** Cilium Gateway API configuration missing required features
+- **Contributing Factors:** Gateway API requirements not fully documented
+
+**3. Configuration Changes:**
+```yaml
+# Required for Gateway API HTTP/2 and gRPC support
+enable-gateway-api-alpn: "true"        # Enables ALPN negotiation
+enable-gateway-api-app-protocol: "true" # Enables backend protocol selection
+```
+
+**4. Lessons Learned:**
+- **Lesson:** Gateway API requires specific Cilium features for full functionality
+- **Lesson:** ALPN is mandatory for proper HTTP/2 and gRPC support
 
 ---
 
-**Last Updated**: June 14, 2025 (06:00 UTC)  
+**Last Updated**: June 14, 2025  
 **Updated By**: AI Team (Claude)  
-**Session Focus**: Resolved k3s1 networking issues, updated documentation to reflect actual cluster state  
-**Key Fixes**: MinIO secrets, VSL configuration, successful B2 backup integration
+**Next Review**: After Week 5 implementation

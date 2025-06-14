@@ -1,11 +1,11 @@
 # Tasks for Next AI Session
 
 ## Context
-This document was created on 2025-06-13 after completing Week 3 observability implementation. Following the resolution of networking issues on k3s1 and successful backup integration, this document has been updated to reflect current priorities.
+This document tracks immediate priorities and actionable tasks for the K3s cluster. It is updated after each session to reflect current state and next steps.
 
-**Last Updated**: 2025-06-14 - Updated to reflect resolved cluster state. Removed obsolete CSI troubleshooting section.
+**Last Updated**: 2025-06-14 - Post-incident update following k3s1 networking resolution and HTTPS/TLS fixes
 
-## Immediate Tasks After System Restart
+## Priority 0 - Critical Issues (GitOps Health)
 
 ### 1. Complete Remaining Flux Reconciliations
 **Objective:** Fix the two remaining Flux issues to ensure full GitOps control.
@@ -23,101 +23,120 @@ This document was created on 2025-06-13 after completing Week 3 observability im
   - Check if this is needed (only if using Intel GPUs)
   - If not needed, consider removing the HelmRelease
 
-### 2. Implement WSL2 GPU Node (After NIC Replacement)
-- **Goal**: Add RTX 4090 to cluster via dedicated WSL2 instance
-- **Plan**: See `docs/wsl2-gpu-node-plan.md` for detailed steps
-- **Script**: Use `docs/setup-wsl-k3s-node.ps1` from Windows PowerShell
+## Priority 1 - High Priority Tasks
 
-### 3. Configure Offsite Backups
-**Objective:** Complete Backblaze B2 integration for offsite disaster recovery.
+### 1. Root Cause Analysis: k3s1 Network Failure
+**Objective:** Prevent recurrence by understanding why k3s1 lost connectivity.
 
 **Actionable Checklist:**
-- [ ] **Step 1: Verify Backblaze B2 Bucket**
-  - Bucket already created with encryption enabled
-  - Review configuration in `/home/josh/flux-k3s/docs/backblaze-b2-setup.md`
+- [ ] **Collect logs from incident timeframe** (approximately 2025-06-13 16:00-18:00 UTC)
+  ```bash
+  # On k3s1
+  sudo journalctl --since "2025-06-13 16:00" --until "2025-06-13 18:00" > /tmp/k3s1-incident.log
+  dmesg -T | grep -E "2025-06-13" > /tmp/k3s1-kernel.log
+  ```
 
-- [ ] **Step 2: Configure Velero B2 Integration**
-  - Follow steps in `/home/josh/flux-k3s/docs/velero-offsite-setup.md`
-  - Key commands:
-    ```bash
-    # Create B2 credentials secret
-    kubectl create secret generic b2-credentials \
-      -n velero \
-      --from-literal=cloud=<base64-encoded-credentials>
-    
-    # Create backup location
-    velero backup-location create b2-offsite \
-      --provider aws \
-      --bucket <YOUR_B2_BUCKET> \
-      --config region=us-west-004,s3ForcePathStyle="true",s3Url=https://s3.us-west-004.backblazeb2.com
-    ```
+- [ ] **Check for resource exhaustion**
+  - Review CPU/memory metrics from Prometheus during incident
+  - Look for OOM killer activity in kernel logs
+  - Check disk I/O patterns
 
-- [ ] **Step 3: Test Offsite Backup**
-  - Create test backup: `velero backup create test-b2-backup --include-namespaces default`
-  - Verify completion: `velero backup describe test-b2-backup`
-  - Check B2 bucket for backup files
+- [ ] **Analyze Cilium behavior**
+  ```bash
+  kubectl logs -n kube-system -l app.kubernetes.io/name=cilium-agent --since-time="2025-06-13T16:00:00Z" | grep k3s1
+  ```
 
-- [ ] **Step 4: Configure Backup Schedule**
-  - Create daily backup schedule for critical namespaces
-  - Implement retention policy (30 days suggested)
+- [ ] **Document findings** in AAR format
 
-### 4. Migrate Monitoring to Longhorn Storage
-- **Status**: Now possible since Longhorn is fully operational
-- **Files**: Update helm-release.yaml files in monitoring stack
-- **Change**: Switch from local-path to longhorn storage classes
-- **Priority**: Medium - system is stable but using ephemeral storage
+### 2. Migrate Monitoring Stack to Longhorn
+**Objective:** Move from ephemeral local-path to replicated Longhorn storage.
 
-## Current Cluster State
+**Current State:**
+- Prometheus, Grafana, Loki all using local-path
+- Risk of data loss on pod restart
 
-### Working Services
-- All media apps (Jellyfin, Plex, *arr stack)
-- AI stack (Ollama, Open WebUI, Automatic1111)
-- Authentication (Authentik - but 2FA not enabled)
-- Storage (Longhorn - except on k3s3)
-- Backups (Velero with local MinIO)
-- Monitoring (Prometheus, Grafana, Loki)
+**Migration Steps:**
+- [ ] **Create backup of current data**
+  ```bash
+  velero backup create monitoring-backup --include-namespaces monitoring
+  ```
 
-### Known Issues
-1. Monitoring using local-path storage (should migrate to Longhorn)
-2. Authentik secret configuration missing
-3. Intel GPU plugin CRDs not installed
-4. ~~CSI driver issues~~ ✅ FIXED - Was actually k3s1 networking issue
-5. ~~No offsite backups~~ ✅ FIXED - B2 integration complete
-6. ~~No TLS/HTTPS~~ ✅ FIXED - HTTPS enabled with Let's Encrypt
+- [ ] **Update HelmRelease storage classes**
+  - Prometheus: Change to `longhorn`
+  - Grafana: Change to `longhorn`  
+  - Loki: Change to `longhorn`
 
-### Access Points
-- Grafana: http://grafana.fletcherlabs.net
-- All services: http://<service>.fletcherlabs.net
-- SSH: Direct to any node (k3s1, k3s2, k3s3, k3s-master1)
+- [ ] **Perform controlled migration**
+  - Scale down workloads
+  - Delete old PVCs
+  - Scale up with new storage
+  - Verify data persistence
 
-## Important Notes
-- SOPS age key at `~/.config/sops/age/keys.txt` - **⚠️ CRITICAL: Ensure this is backed up!**
-- Do NOT enable Authentik 2FA until all infrastructure work complete
-- Tesla T4 is in k3s3, RTX 4090 is in desktop (not yet in cluster)
-- VM snapshots available for emergency rollback
-- See `/home/josh/flux-k3s/EMERGENCY-DOWNGRADE-COMMANDS.md` for K3s version rollback procedures
+## Priority 2 - Medium Priority Tasks
 
-## Current Priorities
+### 1. Complete Authentik Configuration
+**Objective:** Set up initial authentication system without enabling 2FA.
 
-### Immediate Tasks:
-1. **Fix Remaining Flux Issues**
-   - Authentik secret configuration
-   - Intel GPU plugin CRDs (or remove if not needed)
+**Steps:**
+- [ ] Fix missing secret issue first (see Priority 0)
+- [ ] Access Authentik UI and create admin user
+- [ ] Configure OAuth2/OIDC providers
+- [ ] Create test application integration
+- [ ] Document configuration for team
+- [ ] **DO NOT ENABLE 2FA** until all infrastructure stable
 
-2. **Migrate Monitoring Stack**
-   - Move from local-path to Longhorn storage
-   - Ensure data persistence for Prometheus/Grafana
+### 2. Plan High Availability Improvements
+**Current Risks:**
+- Single control plane node
+- Single storage server (R730)
+- No network redundancy
 
-3. **Documentation Updates**
-   - Add incident post-mortem for k3s1 networking issue
-   - Update troubleshooting guides with lessons learned
+**Research Tasks:**
+- [ ] Document requirements for multi-master setup
+- [ ] Evaluate distributed storage options
+- [ ] Create phased HA implementation plan
 
-### Future Considerations:
-1. **Add WSL2 GPU Node** (after NIC replacement)
-2. **Improve Node Health Monitoring**
-3. **Consider Storage Redundancy**
+## Future Tasks (After Current Priorities)
 
-## Related Documentation
-- CSI Troubleshooting: `/home/josh/flux-k3s/docs/csi-troubleshooting-guide.md`
-- Storage Migration Plan: `/home/josh/flux-k3s/docs/storage-migration-plan.md`
-- Cluster Overview: `/home/josh/flux-k3s/CLUSTER-SETUP.md`
+### Implement WSL2 GPU Node
+**Prerequisites:** 10GbE NIC installation on desktop
+- **Goal**: Add RTX 4090 (24GB) to cluster
+- **Benefits**: Better GPU memory isolation than Tesla T4
+- **Plan**: See `docs/wsl2-gpu-node-plan.md`
+- **Script**: `docs/setup-wsl-k3s-node.ps1`
+
+## Quick Status Reference
+
+### ✅ What's Working
+- All nodes operational with Longhorn storage
+- All media and AI services running
+- HTTPS/TLS with valid certificates
+- Velero backups to MinIO and B2
+- Gateway API with proper ALPN/app-protocol support
+
+### 🟡 Known Issues
+- Flux: 2 reconciliation failures (Authentik, Intel GPU)
+- Monitoring: Using ephemeral storage
+- Architecture: No HA for control plane or storage
+- Security: Authentik not configured
+
+## Session Handoff Checklist
+
+### Before Ending Session
+- [ ] Update this document with completed/new tasks
+- [ ] Commit all changes with descriptive messages
+- [ ] Run `flux get all -A` and document any issues
+- [ ] Update relevant documentation if procedures changed
+- [ ] Note any blocking issues for next session
+
+### Key Files to Review
+- **Cluster State**: [CLUSTER-SETUP.md](../CLUSTER-SETUP.md)
+- **Incident History**: See AAR Log section
+- **Troubleshooting**: [storage-and-node-health-troubleshooting.md](storage-and-node-health-troubleshooting.md)
+- **Architecture**: Storage tiers, GPU config, network topology in CLUSTER-SETUP.md
+
+## Critical Reminders
+- **SOPS Key**: `~/.config/sops/age/keys.txt` - Must be backed up!
+- **No 2FA**: Do not enable Authentik 2FA until cluster fully stable
+- **Snapshots**: VM snapshots exist for recovery
+- **GPU Note**: Tesla T4 uses time-slicing (no memory isolation)

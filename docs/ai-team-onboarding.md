@@ -4,13 +4,14 @@
 
 This guide helps new AI team members quickly understand the cluster state, critical issues, and how to be productive from day one.
 
-## 🚨 Critical Information - Read First
+## 🟢 Current Cluster State - Read First
 
-### Current Major Issue
-**K3s v1.32.5 has a CSI driver bug** preventing Longhorn storage from working on k3s3:
-- **Impact**: Cannot create new Longhorn volumes, monitoring stack using local-path workaround
-- **Error**: `CSINode k3s3 does not contain driver driver.longhorn.io`
-- **Troubleshooting Guide**: `/home/josh/flux-k3s/docs/csi-troubleshooting-guide.md`
+### System Status
+**The cluster is stable and operational** - All services running normally
+- **Recent incident resolved**: k3s1 networking failure (initially misdiagnosed as CSI issue)
+- **Key lesson**: Node-level issues can create misleading cluster-wide symptoms
+- **Always verify basic connectivity first** before assuming component bugs
+- **See the AAR**: [CLUSTER-SETUP.md](../CLUSTER-SETUP.md#aar-log) for full incident details
 
 ### Safety Mechanisms
 - **VM Snapshots**: Available for all nodes - use for safe rollback
@@ -25,16 +26,19 @@ This guide helps new AI team members quickly understand the cluster state, criti
 - [ ] Check cluster status: `kubectl get nodes` and `flux get all -A`
 - [ ] Verify access to all services at `https://*.fletcherlabs.net`
 
-### Day 2 - Understanding Issues
-- [ ] Study CSI troubleshooting guide: `/home/josh/flux-k3s/docs/csi-troubleshooting-guide.md`
-- [ ] Review failed fix attempts in CSI guide
-- [ ] Test CSI status: `kubectl get csinode -o custom-columns=NAME:.metadata.name,DRIVERS:.spec.drivers[*].name`
+### Day 2 - Verify System Health
+- [ ] Check all nodes have CSI drivers: `kubectl get csinode`
+- [ ] Verify GitOps sync: `flux get all -A | grep -v "True"`
+- [ ] Review storage health: `kubectl get pvc -A | grep -v Bound`
 - [ ] Check recent events: `kubectl get events -A --sort-by='.lastTimestamp' | head -20`
+- [ ] Study troubleshooting guide: `/home/josh/flux-k3s/docs/storage-and-node-health-troubleshooting.md`
 
-### Day 3 - Planning Next Steps
-- [ ] Decide on CSI fix approach (KUBELET_ROOT_DIR, Longhorn upgrade, or K3s downgrade)
-- [ ] Review storage migration plan: `/home/josh/flux-k3s/docs/storage-migration-plan.md`
-- [ ] Plan Velero offsite backup completion: `/home/josh/flux-k3s/docs/velero-offsite-setup.md`
+### Day 3 - Current Priorities
+- [ ] Fix Flux reconciliation issues (Authentik secret, Intel GPU CRDs)
+- [ ] Investigate k3s1 network failure root cause
+- [ ] Migrate monitoring stack to Longhorn storage
+- [ ] Complete Authentik initial configuration (NO 2FA yet!)
+- [ ] Review AAR action items in CLUSTER-SETUP.md
 
 ## Key Commands Reference
 
@@ -68,15 +72,19 @@ flux suspend kustomization --all
 
 ### Troubleshooting
 ```bash
-# CSI debugging
-kubectl describe csinode k3s3
-kubectl logs -n longhorn-system -l app=longhorn-csi-plugin
+# Node connectivity check
+kubectl run debug --image=busybox --rm -it -- sh
+# From inside: ping <service-ip>, curl http://<service>:<port>
 
 # Recent errors
 kubectl get events -A --field-selector type=Warning
 
 # Service logs
 kubectl logs -n <namespace> deployment/<name> --tail=100
+
+# Storage issues
+kubectl describe pvc <name> -n <namespace>
+kubectl get volumes.longhorn.io -n longhorn-system
 ```
 
 ## Understanding the Architecture
@@ -89,8 +97,8 @@ kubectl logs -n <namespace> deployment/<name> --tail=100
 │                 │     │                 │     │                 │
 │ - k3s-master1   │     │ - GPU: Tesla T4 │     │ - QuickSync     │
 │ - NFS Storage   │     │ - 384GB RAM     │     │ - Light compute │
-│   └─ NVMe       │     │ - CSI BROKEN    │     │                 │
-│   └─ 30TB HDD  │     │                 │     │                 │
+│   └─ NVMe       │     │ - Multi-tier    │     │ - Longhorn ✓    │
+│   └─ 30TB HDD  │     │   storage       │     │                 │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
@@ -186,17 +194,23 @@ The cluster uses `mcp__zen__*` tools for AI collaboration:
    cat /home/josh/flux-k3s/docs/next-session-tasks.md
    ```
 
+4. **Check Longhorn node status**:
+   ```bash
+   kubectl get nodes.longhorn.io -n longhorn-system
+   ```
+
 4. **Update Your Progress**:
    - Use TodoWrite to track your work
    - Update documentation as you learn
    - Commit findings to help next team
 
-## Questions to Answer Early
+## Current Action Items
 
-1. **Storage**: Should we fix Longhorn or switch to alternative?
-2. **Backups**: Can we get B2 credentials to complete offsite backup?
-3. **Priorities**: CSI fix first, or work around it?
-4. **Timeline**: When is WSL2 GPU node needed?
+1. **P0 - Flux Health**: Fix Authentik secret and Intel GPU CRDs
+2. **P1 - Root Cause**: Why did k3s1 lose network connectivity?
+3. **P2 - Monitoring**: Migrate from local-path to Longhorn storage
+4. **P3 - Security**: Configure Authentik (without 2FA initially)
+5. **Future**: Add WSL2 GPU node after 10GbE NIC installation
 
 ## Getting Help
 
@@ -222,4 +236,5 @@ The cluster uses `mcp__zen__*` tools for AI collaboration:
 **Remember**: It's okay to ask questions, test thoroughly, and take breaks. Complex systems require patience and methodical approaches.
 
 **Last Updated**: 2025-06-14  
-**Created By**: AI Team (o3-mini as documentation lead)
+**Updated By**: AI Team (Claude) - Post-incident documentation update  
+**Key Changes**: Removed incorrect CSI bug information, updated with actual cluster state

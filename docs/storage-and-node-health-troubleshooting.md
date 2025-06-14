@@ -1,21 +1,117 @@
-# CSI Troubleshooting Guide
+# Storage and Node Health Troubleshooting Guide
 
 ## Overview
-This guide consolidates past resolution attempts and provides a decision tree for troubleshooting the Longhorn CSI driver registration issue on k3s nodes (notably k3s3).
+This guide helps diagnose storage-related issues and node health problems in the K3s cluster. It covers common symptoms, root cause analysis, and resolution steps.
 
-**Critical Context**: K3s v1.32.5 appears to have a fundamental incompatibility with Longhorn v1.6.2's CSI driver registration mechanism.
+**Key Learning**: What appears to be a storage or CSI issue is often a symptom of underlying node health problems, particularly network connectivity issues.
 
-## Common Issue
-- **Error Message:**  
-  ```
-  MountVolume.MountDevice failed: driver name driver.longhorn.io not found in the list of registered CSI drivers
-  ```
-- **Secondary Error:**
-  ```
-  AttachVolume.Attach failed for volume "pvc-xxx": CSINode k3s3 does not contain driver driver.longhorn.io
-  ```
+## Common Symptoms and Their Causes
 
-## Failed Resolution Attempts (Record of what has been tried)
+### Symptom: Pods Stuck in ContainerCreating/Pending
+**Error Messages:**
+```
+MountVolume.MountDevice failed: driver name driver.longhorn.io not found in the list of registered CSI drivers
+AttachVolume.Attach failed for volume "pvc-xxx": CSINode <node> does not contain driver driver.longhorn.io
+```
+
+**Root Causes:**
+1. **Node Network Issues** (Most Common)
+   - Node cannot reach cluster services
+   - Kubelet cannot communicate with Longhorn daemonset
+   - Often presents as CSI registration failure
+
+2. **Actual CSI Issues** (Less Common)
+   - Longhorn components not running on node
+   - CSI driver crashed or failed to start
+   - Node scheduling disabled in Longhorn
+
+3. **Storage Backend Issues**
+   - Disk mount failures
+   - Filesystem errors
+   - Insufficient disk space
+
+## Troubleshooting Steps
+
+### Step 1: Check Node-Level Health
+**Always start here - this catches 80% of issues**
+
+```bash
+# Check node status
+kubectl get nodes -o wide
+# Look for: NotReady status, network plugin issues
+
+# Check kubelet logs on affected node
+ssh <node> "sudo journalctl -u k3s-agent -n 100 --no-pager | grep -E 'error|fail|timeout'"
+
+# Test connectivity from node
+kubectl run debug-<node> --image=busybox --overrides='{"spec":{"nodeName":"<node>"}}' --rm -it -- sh
+# Inside pod: 
+# ping 10.43.0.1  # Cluster DNS
+# nslookup kubernetes.default
+# wget -O- http://longhorn-backend.longhorn-system:9500/v1
+```
+
+### Step 2: Verify CSI Registration
+```bash
+# Check CSI drivers on all nodes
+kubectl get csinode -o custom-columns=NAME:.metadata.name,DRIVERS:.spec.drivers[*].name
+
+# If driver missing, check Longhorn components
+kubectl get pods -n longhorn-system -o wide | grep <node>
+# Should see: longhorn-manager, longhorn-csi-plugin, instance-manager
+
+# Check CSI plugin logs
+kubectl logs -n longhorn-system -l app=longhorn-csi-plugin --all-containers | grep -i error
+```
+
+### Step 3: Check Longhorn Node Configuration
+```bash
+# Check if node scheduling is enabled
+kubectl get nodes.longhorn.io -n longhorn-system
+# ALLOWSCHEDULING should be "true"
+
+# If not, enable it
+kubectl patch nodes.longhorn.io -n longhorn-system <node> --type merge -p '{"spec":{"allowScheduling":true}}'
+
+# Check disk configuration
+kubectl get nodes.longhorn.io -n longhorn-system <node> -o yaml | grep -A20 "disks:"
+```
+
+### Step 4: Volume-Specific Troubleshooting
+```bash
+# For stuck PVCs
+kubectl describe pvc <pvc-name> -n <namespace>
+# Look for events showing attachment/mounting errors
+
+# Check volume status
+kubectl get volumes.longhorn.io -n longhorn-system | grep <pvc-id>
+
+# For faulted volumes
+kubectl describe volume.longhorn.io -n longhorn-system <volume-name>
+# Check replica status
+kubectl get replicas.longhorn.io -n longhorn-system -l longhornvolume=<volume-name>
+```
+
+## Historical Issues and Resolutions
+
+### Case Study: k3s1 Networking Failure (June 14, 2025)
+**Initial Symptoms:**
+- Longhorn CSI plugin: 45+ restarts with "context deadline exceeded"
+- Appeared to be CSI registration failure
+- PVCs stuck in Pending state
+
+**Root Cause:** Network connectivity loss on k3s1
+
+**Resolution:**
+1. Cordoned node to prevent new workloads
+2. Node self-recovered network connectivity
+3. Verified with canary pod before uncordoning
+
+**Lesson:** Always check network connectivity before assuming CSI/storage issues
+
+## Historical Failed Attempts (K3s v1.32.5 Investigation)
+
+The following attempts were made when investigating what appeared to be a K3s v1.32.5 incompatibility. These are preserved for reference but were addressing symptoms, not the root cause.
 
 ### 1. Disabling AuthorizeNodeWithSelectors Feature Gate
 - **Attempt**: Added `--kube-apiserver-arg=feature-gates=AuthorizeNodeWithSelectors=false` to K3s config
