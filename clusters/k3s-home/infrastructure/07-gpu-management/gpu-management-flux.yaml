@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gpu-management
+  namespace: flux-system
+spec:
+  path: ./clusters/k3s-home/infrastructure/07-gpu-management
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  interval: 30m
+  timeout: 10m
+  dependsOn:
+    - name: nvidia-gpu-plugin
+    - name: intel-gpu-plugin

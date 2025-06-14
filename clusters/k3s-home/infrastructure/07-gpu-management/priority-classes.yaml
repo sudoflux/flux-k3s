@@ -1,0 +1,27 @@
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: critical-gpu
+value: 1000
+globalDefault: false
+description: "Critical GPU workloads (media streaming)"
+preemptionPolicy: PreemptLowerPriority
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: normal-gpu
+value: 700
+globalDefault: false
+description: "Normal GPU workloads (AI inference)"
+preemptionPolicy: PreemptLowerPriority
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: batch-gpu
+value: 200
+globalDefault: false
+description: "Batch GPU workloads (AI training, image generation)"
+preemptionPolicy: Never

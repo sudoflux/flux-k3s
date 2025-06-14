@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   # This file now only loads our orchestrator
   - cluster-sync.yaml
+  - ../infrastructure/07-gpu-management/gpu-management-flux.yaml

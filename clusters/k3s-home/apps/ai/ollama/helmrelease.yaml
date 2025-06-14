@@ -21,6 +21,7 @@ spec:
         type: deployment
         replicas: 1
         pod:
+          priorityClassName: normal-gpu
           nodeSelector:
             kubernetes.io/hostname: k3s3  # Pin to GPU node
           runtimeClassName: nvidia  # Use NVIDIA runtime
