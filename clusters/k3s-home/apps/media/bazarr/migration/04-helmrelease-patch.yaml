@@ -1,0 +1,16 @@
+# Patch to update Bazarr to use Longhorn storage
+# Apply this AFTER successful migration and verification
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: bazarr
+  namespace: media
+spec:
+  values:
+    persistence:
+      config:
+        enabled: true
+        existingClaim: bazarr-config-longhorn  # Changed from bazarr-config-pvc
+      data:
+        enabled: true
+        existingClaim: k3s-data-pvc  # Media storage remains on NFS

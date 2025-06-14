@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bazarr-migrate-to-longhorn
+  namespace: media
+spec:
+  template:
+    metadata:
+      labels:
+        app: bazarr-migration
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: busybox:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Starting Bazarr config migration from NFS to Longhorn..."
+          echo "=================================================="
+          
+          # Check source directory
+          echo "Source NFS contents:"
+          ls -la /old-nfs/
+          echo ""
+          
+          # Check if destination is empty
+          echo "Destination Longhorn contents (should be empty):"
+          ls -la /new-longhorn/
+          echo ""
+          
+          # Count files and calculate size
+          echo "Calculating source size..."
+          cd /old-nfs
+          FILE_COUNT=$(find . -type f | wc -l)
+          DIR_COUNT=$(find . -type d | wc -l)
+          TOTAL_SIZE=$(du -sh . | cut -f1)
+          echo "Files: $FILE_COUNT"
+          echo "Directories: $DIR_COUNT"
+          echo "Total size: $TOTAL_SIZE"
+          echo ""
+          
+          # Perform the copy with progress
+          echo "Starting copy operation..."
+          cp -av /old-nfs/* /new-longhorn/ 2>&1
+          
+          # Verify the copy
+          echo ""
+          echo "Verifying copy..."
+          cd /new-longhorn
+          NEW_FILE_COUNT=$(find . -type f | wc -l)
+          NEW_DIR_COUNT=$(find . -type d | wc -l)
+          NEW_TOTAL_SIZE=$(du -sh . | cut -f1)
+          
+          echo "Destination files: $NEW_FILE_COUNT"
+          echo "Destination directories: $NEW_DIR_COUNT"
+          echo "Destination size: $NEW_TOTAL_SIZE"
+          
+          # Check if counts match
+          if [ "$FILE_COUNT" = "$NEW_FILE_COUNT" ] && [ "$DIR_COUNT" = "$NEW_DIR_COUNT" ]; then
+            echo ""
+            echo "✅ SUCCESS: Migration completed successfully!"
+            echo "File and directory counts match."
+          else
+            echo ""
+            echo "⚠️  WARNING: File or directory counts don't match!"
+            echo "Source: $FILE_COUNT files, $DIR_COUNT directories"
+            echo "Destination: $NEW_FILE_COUNT files, $NEW_DIR_COUNT directories"
+            exit 1
+          fi
+          
+          # Create a migration timestamp file
+          echo "Migration completed at $(date)" > /new-longhorn/.migration-completed
+          
+          echo ""
+          echo "Migration job completed. Please verify the application works correctly."
+          
+        volumeMounts:
+        - name: old-nfs
+          mountPath: /old-nfs
+          readOnly: true
+        - name: new-longhorn
+          mountPath: /new-longhorn
+      volumes:
+      - name: old-nfs
+        persistentVolumeClaim:
+          claimName: bazarr-config-pvc
+      - name: new-longhorn
+        persistentVolumeClaim:
+          claimName: bazarr-config-longhorn

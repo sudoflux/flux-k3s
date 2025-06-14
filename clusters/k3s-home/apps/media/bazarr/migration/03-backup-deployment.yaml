@@ -1,0 +1,41 @@
+# This is a backup of the original Bazarr deployment for rollback purposes
+# DO NOT APPLY THIS - It's just for reference and emergency rollback
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bazarr
+  template:
+    metadata:
+      labels:
+        app: bazarr
+    spec:
+      containers:
+      - name: bazarr
+        image: lscr.io/linuxserver/bazarr:latest
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Los_Angeles"
+        ports:
+        - containerPort: 6767
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: media
+          mountPath: /data
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: bazarr-config-pvc  # Original NFS PVC
+      - name: media
+        persistentVolumeClaim:
+          claimName: k3s-data-pvc

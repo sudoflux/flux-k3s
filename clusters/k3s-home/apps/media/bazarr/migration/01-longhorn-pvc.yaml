@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-config-longhorn
+  namespace: media
+  labels:
+    app: bazarr
+    storage-type: config
+    storage-backend: longhorn
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-nvme
+  resources:
+    requests:
+      storage: 1Gi  # Extra headroom for growth
