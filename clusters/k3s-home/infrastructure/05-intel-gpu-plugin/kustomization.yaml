@@ -4,4 +4,5 @@ resources:
   - namespace.yaml
   - helmrepository.yaml
   - crds.yaml
+  - operator-helmrelease.yaml
   - helmrelease.yaml
