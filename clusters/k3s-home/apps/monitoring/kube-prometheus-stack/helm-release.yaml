@@ -57,11 +57,11 @@ spec:
             cpu: 4
             memory: 10Gi
         
-        # Storage configuration - using longhorn-replicated for persistence
+        # Storage configuration - using longhorn-nvme for persistence
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: "longhorn-replicated"
+              storageClassName: "longhorn-nvme"
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
@@ -91,10 +91,10 @@ spec:
         userKey: admin-user
         passwordKey: admin-password
       
-      # Persistence using longhorn-replicated for data durability
+      # Persistence using longhorn-nvme for data durability
       persistence:
         enabled: true
-        storageClassName: "longhorn-replicated"
+        storageClassName: "longhorn-nvme"
         accessModes:
           - ReadWriteOnce
         size: 10Gi
@@ -171,11 +171,11 @@ spec:
             cpu: 500m
             memory: 1Gi
         
-        # Storage using longhorn-replicated for persistence
+        # Storage using longhorn-nvme for persistence
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: "longhorn-replicated"
+              storageClassName: "longhorn-nvme"
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
