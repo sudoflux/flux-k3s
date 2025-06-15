@@ -6,6 +6,7 @@ kind: Kustomization
 # List the YAML files or subdirectories containing Kustomizations within THIS directory
 resources:
   - namespace.yaml
+  - oauth2-proxy-prometheus
   # Add other monitoring resources here later:
   # - prometheus-helmrelease.yaml
   # - grafana-helmrelease.yaml
