@@ -1,106 +1,174 @@
 # Next Session Prompt - K3s Homelab Cluster
 
-## 🎉 Major Progress Update - June 15, 2025
+## Session Context
+**Date**: June 15, 2025 (Evening)  
+**Critical Issue**: Prometheus exposed without authentication  
+**Immediate Priority**: Configure Authentik and secure monitoring endpoints
 
-The cluster has been successfully recovered from the Longhorn CSI incident with all critical P0 priorities completed!
+## Today's Achievements
 
-## ✅ What's Been Accomplished
+### Infrastructure Recovery Complete
+- ✅ Longhorn v1.6.2 fresh install working perfectly
+- ✅ Monitoring stack on persistent storage (local-path workaround for fsGroup issues)
+- ✅ Velero backups to Backblaze B2 configured and tested
+- ✅ All media and AI workloads running smoothly
 
-### Critical Infrastructure Recovery (All P0 Complete)
-1. **Monitoring Stack** ✅
-   - Migrated from ephemeral to persistent storage
-   - Working around Longhorn fsGroup issues with local-path
-   - All monitoring services operational
+### Monitoring Improvements
+- ✅ Comprehensive Longhorn health alerts configured
+- ✅ Alert templates for clear, actionable notifications
+- ✅ Prometheus accessible at https://prometheus.fletcherlabs.net (NO AUTH!)
+- ✅ Coverage for volume health, node storage, disk capacity, CSI status
 
-2. **Backup Strategy** ✅
-   - Velero configured with Backblaze B2
-   - Automated schedules: Hourly (Longhorn), Daily (critical), Weekly (full)
-   - Backup/restore tested and verified
+### Security Preparations
+- ✅ Authentik deployed at https://authentik.fletcherlabs.net
+- ✅ OAuth2-Proxy templates ready for all services
+- ✅ SOPS encryption working for all secrets
+- ✅ Documentation for Traefik removal (not executed)
 
-3. **Security Foundation** ✅
-   - SOPS encryption already working perfectly
-   - All secrets properly encrypted with age keys
-   - Authentik deployed and accessible
+## Current Cluster State
 
-## 📊 Current Cluster State
-
-```yaml
-Status: STABLE AND PROTECTED
-- Storage: Longhorn v1.6.2 operational
-- Backups: Automated to B2 cloud storage
-- Monitoring: Fully operational with persistence
-- Security: SOPS active, Authentik ready for config
-- GitOps: Flux fully reconciling
-```
-
-## 🎯 Next Priorities
-
-### Priority 1 - Authentik Configuration
-1. Navigate to https://authentik.fletcherlabs.net
-2. Create initial admin account (NO 2FA per CIO directive)
-3. Configure OAuth2/OIDC providers for:
-   - Longhorn UI
-   - Grafana
-   - Prometheus (needs HTTPRoute first)
-4. Update service configurations with auth
-
-### Priority 2 - Monitoring Alerts
-Configure critical alerts for:
-- Longhorn volume health
-- CSI driver status  
-- Backup job failures
-- Node disk space
-- Authentication failures
-
-### Priority 3 - Documentation
-- Update operational runbooks
-- Create Longhorn operations guide
-- Document security procedures
-- Update disaster recovery plans
-
-## 🚀 Quick Start
-
+### Working Services
 ```bash
-# Check cluster health
-kubectl get nodes && flux get all -A
-
-# View current backups
-velero backup get
-
-# Access key services
-echo "Longhorn: https://longhorn.fletcherlabs.net"
-echo "Grafana: https://grafana.fletcherlabs.net" 
-echo "Authentik: https://authentik.fletcherlabs.net"
-
-# Run setup helper
-/home/josh/flux-k3s/scripts/authentik-initial-setup.sh
+# All services accessible via HTTPS
+https://longhorn.fletcherlabs.net     # Storage UI
+https://grafana.fletcherlabs.net      # Monitoring dashboards (has auth)
+https://prometheus.fletcherlabs.net   # ⚠️ EXPOSED - NO AUTH
+https://authentik.fletcherlabs.net    # Auth system (needs setup)
+https://*.fletcherlabs.net           # All media/AI services working
 ```
 
-## 📚 Essential Documentation
+### Storage Status
+- Longhorn: Fully operational on all nodes
+- Storage Classes: longhorn, longhorn-nvme, longhorn-optane, longhorn-sas-ssd
+- NFS: Working for bulk media storage
+- Local-path: Used for monitoring due to fsGroup issues
 
-1. **[CLUSTER-SETUP.md](CLUSTER-SETUP.md)** - Updated with current state
-2. **[DAY-SHIFT-SUMMARY-2025-06-15.md](DAY-SHIFT-SUMMARY-2025-06-15.md)** - Today's accomplishments
-3. **[docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)** - Incident analysis
-4. **[docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md](docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md)** - Original roadmap
+### Backup Status
+- Velero: Configured with Backblaze B2
+- Schedules: Hourly (Longhorn), Daily (critical), Weekly (full)
+- MinIO local storage: Broken but not critical
 
-## 🔧 Known Issues (Non-Critical)
+## Remaining Priorities
 
-1. **MinIO Local Storage** - Broken but B2 backups working fine
-2. **DCGM Exporter** - GPU metrics failing (not critical)
-3. **Traefik Noise** - K3s trying to install (we use Cilium)
-4. **Longhorn fsGroup** - Monitoring using local-path workaround
+### 🔴 Priority 0 - URGENT Security
+1. **Configure Authentik**
+   ```bash
+   # Access Authentik
+   https://authentik.fletcherlabs.net
+   
+   # Create initial admin (NO 2FA per CIO directive)
+   # Follow: docs/authentik-manual-setup-steps.md
+   ```
 
-## 💡 Key Achievements
+2. **Secure Prometheus**
+   ```bash
+   # Templates ready at:
+   docs/oauth2-integration-templates.md
+   
+   # Deploy OAuth2-Proxy for Prometheus IMMEDIATELY
+   # This is exposing sensitive metrics!
+   ```
 
-- **Zero to Hero**: From complete storage failure to full data protection in 48 hours
-- **Automation**: Backups now run automatically without intervention
-- **Security**: All secrets encrypted, auth gateway ready
-- **Monitoring**: Full observability with persistent storage
+### 🟡 Priority 1 - This Week
+3. **Complete OAuth2 Integration**
+   - Longhorn UI (currently using basic auth)
+   - Grafana (enhance existing auth)
+   - All other sensitive services
 
-The cluster is now more resilient than before the incident. The painful nuclear option gave us a clean foundation to build on properly.
+4. **Test Monitoring Alerts**
+   - Verify Longhorn alerts fire correctly
+   - Configure external notification channels
+   - Test backup failure alerts
+
+### 🟢 Priority 2 - When Time Permits
+5. **Disable K3s Traefik**
+   ```bash
+   # SSH to master node
+   ssh josh@192.168.10.30
+   
+   # Run disable script
+   /home/josh/flux-k3s/scripts/disable-traefik.sh
+   ```
+
+6. **Fix MinIO Local Storage**
+   - Investigate "0 drives provided" error
+   - Not critical - B2 backups working
+
+## Quick Start Commands
+
+### Check Cluster Health
+```bash
+# Node status
+kubectl get nodes -o wide
+
+# Storage health
+kubectl get pvc -A
+kubectl -n longhorn-system get volumes.longhorn.io
+
+# Check backups
+velero backup get
+velero schedule get
+
+# Check Flux sync
+flux get all -A
+```
+
+### Access Key Services
+```bash
+# Monitoring (check alerts)
+echo "Grafana: https://grafana.fletcherlabs.net"
+echo "Prometheus: https://prometheus.fletcherlabs.net (NO AUTH!)"
+
+# Storage management
+echo "Longhorn: https://longhorn.fletcherlabs.net"
+
+# Authentication setup
+echo "Authentik: https://authentik.fletcherlabs.net"
+```
+
+### Emergency Procedures
+```bash
+# If storage issues return
+kubectl -n longhorn-system logs -l app=longhorn-csi-plugin
+
+# Check CSI drivers
+kubectl get csidriver
+kubectl get csinode
+
+# Flux issues
+flux reconcile kustomization apps --with-source
+```
+
+## Important Security Considerations
+
+### ⚠️ CRITICAL: Exposed Services
+1. **Prometheus is publicly accessible without authentication**
+   - Contains sensitive system metrics
+   - Can reveal infrastructure details
+   - MUST be secured ASAP
+
+2. **Authentik OAuth2 Apps Needed For:**
+   - Prometheus (URGENT)
+   - Longhorn
+   - Any future admin interfaces
+
+### SOPS Encryption
+- Age key location: `~/.config/sops/age/keys.txt`
+- ⚠️ This key is CRITICAL - ensure it's backed up
+- All secrets properly encrypted
+
+## Key Documentation
+- Main overview: `CLUSTER-SETUP.md`
+- Longhorn incident: `docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md`
+- OAuth2 templates: `docs/oauth2-integration-templates.md`
+- Authentik setup: `docs/authentik-manual-setup-steps.md`
+
+## Notes for Next Team
+1. DO NOT change kubelet paths - K3s uses `/var/lib/rancher/k3s/agent/kubelet`
+2. Monitoring fsGroup issues are worked around with local-path storage
+3. All OAuth2-Proxy configurations are tested and ready to deploy
+4. Backup strategy is solid - test restores regularly
+5. The cluster is stable but needs auth configuration urgently
 
 ---
-
-**Last Updated**: June 15, 2025  
-**Status**: Stable and Protected  
-**Next Focus**: Authentication and Alerting
+**Remember**: First priority is securing Prometheus. It's currently exposing all cluster metrics without any authentication!

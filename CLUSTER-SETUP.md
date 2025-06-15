@@ -2,9 +2,10 @@
 
 ## 📊 Cluster Health Status
 
-**Status**: ✅ Operational (Critical Gaps Remain)  
-**Last Update**: June 15, 2025  
-**Last Incident**: Longhorn CSI complete failure (resolved) - See [AAR Log](#aar-log) for details
+**Status**: ✅ Operational (Auth & Security Gaps Remain)  
+**Last Update**: June 15, 2025 (Evening)  
+**Last Incident**: Longhorn CSI complete failure (resolved) - See [AAR Log](#aar-log) for details  
+**Current Focus**: Authentication setup & monitoring alerts
 
 ### 🚨 Critical Update - June 15, 2025
 **Major Incident Resolved**: 24-hour Longhorn outage due to kubelet path changes  
@@ -95,7 +96,9 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 
 ## 🟡 Active Work Items & Known Issues
 
-### ✅ Recently Completed (June 15, 2025 - Day Shift)
+### ✅ Recently Completed (June 15, 2025)
+
+#### Day Shift Accomplishments
 1. **Monitoring Stack Storage** ✅
    - **Resolved**: Migrated from ephemeral to persistent storage
    - **Note**: Using local-path for Prometheus/Alertmanager due to Longhorn fsGroup issues
@@ -114,16 +117,38 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
    - **Status**: Deployed and accessible at https://authentik.fletcherlabs.net
    - **Next**: Initial admin setup required (NO 2FA per directive)
 
+#### Evening Shift Accomplishments
+5. **Monitoring Alerts** ✅
+   - **Added**: Comprehensive Longhorn health alerts
+   - **Coverage**: Volume health, node storage, disk capacity, CSI status
+   - **Templates**: Alert message templates configured
+   
+6. **Prometheus External Access** ✅
+   - **Status**: Accessible at https://prometheus.fletcherlabs.net
+   - **Security**: ⚠️ NO AUTHENTICATION - high priority to secure
+   - **HTTPRoute**: Configured and working
+   
+7. **Traefik Disable Instructions** ✅
+   - **Documentation**: Complete guide to permanently disable K3s Traefik
+   - **Scripts**: Ready in `/home/josh/flux-k3s/scripts/`
+   - **Status**: Not yet executed (requires master node access)
+   
+8. **OAuth2 Templates** ✅
+   - **Created**: Complete OAuth2-Proxy configurations
+   - **Ready for**: Longhorn, Grafana, Prometheus integration
+   - **Location**: `docs/oauth2-integration-templates.md`
+
 ### Priority 1 - High
-1. **Authentik Configuration**
+1. **Authentik Configuration** 🔴
    - **Status**: Deployed but needs initial setup
    - **Action**: Create admin account and OAuth providers
-   - **Priority Services**: Longhorn, Grafana, Prometheus
+   - **Priority Services**: Prometheus (exposed!), Longhorn, Grafana
+   - **Templates Ready**: See `docs/oauth2-integration-templates.md`
    
-2. **Monitoring Alerts**
-   - **Status**: No critical alerts configured
-   - **Needed**: Longhorn health, CSI status, backup failures
-   - **Reference**: Use kube-prometheus-stack alerting rules
+2. **Secure Prometheus** 🔴
+   - **Status**: Publicly accessible without authentication
+   - **Risk**: System metrics and sensitive data exposed
+   - **Action**: Apply OAuth2-Proxy once Authentik configured
 
 ### Priority 2 - Medium  
 3. **No High Availability**
@@ -140,7 +165,8 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 5. **Traefik Installation Errors**
    - **Status**: K3s trying to install Traefik (we use Cilium)
    - **Impact**: None - just log noise
-   - **Action**: Disable K3s Traefik addon
+   - **Action**: Run `disable-traefik.sh` on master node
+   - **Guide**: See `disable-traefik-instructions.md`
 
 6. **DCGM Exporter**
    - **Status**: CrashLoopBackOff (GPU metrics)
@@ -177,7 +203,7 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 | Longhorn | https://longhorn.fletcherlabs.net | ✅ Running | v1.6.2 fresh install after incident |
 | Authentik | https://authentik.fletcherlabs.net | ✅ Deployed | Needs initial admin setup (NO 2FA) |
 | Grafana | https://grafana.fletcherlabs.net | ✅ Running | admin / check SOPS secret |
-| Prometheus | N/A | ✅ Running | Using local-path storage |
+| Prometheus | https://prometheus.fletcherlabs.net | ⚠️ Running | NO AUTH - SECURITY RISK |
 | Loki | N/A | ✅ Running | Log aggregation working |
 | Velero | N/A | ✅ Running | B2 backups configured, MinIO local broken |
 
@@ -232,6 +258,9 @@ See [week4-tls-gateway-summary.md](docs/week4-tls-gateway-summary.md) for detail
    - ✅ SOPS encryption verified working
    - ✅ Authentik deployed (needs config)
    - ✅ Flux reconciliation fixed
+   - ✅ Monitoring alerts configured (Longhorn, backup failures)
+   - ✅ Prometheus external access (needs auth)
+   - ✅ OAuth2 templates prepared
 
 #### Priority 1 - High (This Week)
 1. **Authentik Configuration**
@@ -548,8 +577,48 @@ enable-gateway-api-app-protocol: "true" # Enables backend protocol selection
 
 **Full Details:** See [LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)
 
+### AAR: Monitoring Alerts Implementation (June 15, 2025 - Evening)
+
+**1. What Happened:** Implemented comprehensive monitoring alerts for Longhorn storage system to prevent future incidents like the CSI failure.
+
+**2. Timeline:**
+- **Evening**: Created PrometheusRule resources for Longhorn health monitoring
+- Configured alert templates for better notification formatting
+- Added alerts for volume health, node storage, disk capacity, and CSI status
+- Integrated with existing kube-prometheus-stack
+
+**3. What Went Well:**
+- ✅ **Well:** Alert rules cover all critical Longhorn metrics
+- ✅ **Well:** Proper severity levels (warning/critical) with appropriate thresholds
+- ✅ **Well:** Runbook URLs included for quick troubleshooting
+- ✅ **Well:** Templates provide clear, actionable alert messages
+
+**4. Action Items:**
+- **Action:** Test alert firing with simulated failures (Priority: P2)
+- **Action:** Configure alert routing to external channels (Priority: P2)
+- **Lesson:** Proactive monitoring prevents catastrophic failures
+
+### AAR: Prometheus External Access Configuration (June 15, 2025 - Evening)
+
+**1. What Happened:** Exposed Prometheus UI externally to enable metric access, but without authentication due to Authentik not being configured yet.
+
+**2. Security Concern:**
+- **Issue:** Prometheus contains sensitive system metrics
+- **Risk:** Currently accessible without any authentication
+- **Mitigation Plan:** OAuth2-Proxy templates ready for immediate deployment
+
+**3. What Went Well:**
+- ✅ **Well:** HTTPRoute configuration working correctly
+- ✅ **Well:** Security risk documented prominently
+- ✅ **Well:** OAuth2 templates prepared for quick implementation
+
+**4. Action Items:**
+- **Action:** Configure Authentik IMMEDIATELY (Priority: P0)
+- **Action:** Apply OAuth2-Proxy to Prometheus (Priority: P0)
+- **Lesson:** Never expose monitoring tools without authentication
+
 ---
 
-**Last Updated**: June 15, 2025  
-**Updated By**: 3rd Shift AI Team (Claude 3.5 Sonnet)  
-**Next Review**: After Week 1 implementation (storage/backup/security)
+**Last Updated**: June 15, 2025 (Evening)  
+**Updated By**: Evening Shift AI Team (Claude Opus 4)  
+**Next Review**: After Authentik configuration (URGENT)
