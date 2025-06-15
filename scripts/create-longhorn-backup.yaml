@@ -1,0 +1,7 @@
+apiVersion: longhorn.io/v1beta2
+kind: Backup
+metadata:
+  name: backup-test-recyclarr-config
+  namespace: longhorn-system
+spec:
+  volume: pvc-1b3ff014-807d-4a7b-a1f6-e8e52a54f7a4  # recyclarr-config-longhorn (1GB, healthy)

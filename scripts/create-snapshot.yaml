@@ -1,0 +1,9 @@
+apiVersion: longhorn.io/v1beta2
+kind: Snapshot
+metadata:
+  name: recyclarr-snap-20250615-1250
+  namespace: longhorn-system
+spec:
+  volume: pvc-1b3ff014-807d-4a7b-a1f6-e8e52a54f7a4
+  labels:
+    reason: pre-reinstall-backup

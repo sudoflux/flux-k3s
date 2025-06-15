@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-memberlist
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: loki
+    app.kubernetes.io/instance: loki
+spec:
+  clusterIP: None
+  ports:
+  - name: gossip
+    port: 7946
+    protocol: TCP
+    targetPort: 7946
+  selector:
+    app.kubernetes.io/name: loki
+    app.kubernetes.io/instance: loki

@@ -1,0 +1,8 @@
+apiVersion: longhorn.io/v1beta2
+kind: BackupVolume
+metadata:
+  name: backup-pvc-1b3ff014-807d-4a7b-a1f6-e8e52a54f7a4
+  namespace: longhorn-system
+spec:
+  backupTargetURL: nfs://192.168.10.100:/mnt/nvme_storage/longhorn-backups
+  syncRequestedAt: "2025-06-15T12:45:00Z"

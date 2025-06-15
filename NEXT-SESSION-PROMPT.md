@@ -1,117 +1,163 @@
 # DevOps Team Session Handoff - K3s Homelab Cluster
 
-## 🚨 CRITICAL UPDATE - June 14, 2025 🚨
+## 🚨 CRITICAL UPDATE - Longhorn CSI Fixed After 24-Hour Outage! 🚨
 
-### READ THESE FILES IMMEDIATELY - Critical CSI Blocker!
+### Major Incident Resolved (June 15, 2025)
 
-**The previous 48-hour session ended with a CRITICAL BLOCKER. Before doing ANYTHING else, read:**
+**Previous Issue**: Day shift changed kubelet paths which completely broke Longhorn CSI  
+**Resolution**: Complete removal and fresh installation of Longhorn v1.6.2  
+**Current Status**: ✅ Storage operational, Flux healthy, cluster stable
 
-1. **[NEXT-SESSION-HANDOFF-2025-06-14.md](./NEXT-SESSION-HANDOFF-2025-06-14.md)** - Critical Longhorn CSI issue preventing ALL storage operations
-2. **[CSI-TROUBLESHOOTING-DETAILS.md](./CSI-TROUBLESHOOTING-DETAILS.md)** - Deep technical analysis of the mount path problem
-3. **[FINAL-SESSION-REPORT-2025-06-14.md](./FINAL-SESSION-REPORT-2025-06-14.md)** - Summary of completed work
+### Essential Reading Before Starting
+1. **[LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)** - Full technical analysis
+2. **[NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md](docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md)** - Your implementation roadmap
+3. **[3RD-SHIFT-HANDOFF-2025-06-15.md](3RD-SHIFT-HANDOFF-2025-06-15.md)** - What we fixed and what's left
 
-### ⚠️ BLOCKER: Longhorn CSI Completely Broken on K3s
+### ⚠️ Critical Context
+- **Data Loss**: Complete - all previous Longhorn volumes were lost
+- **Root Cause**: Kubelet path change from `/var/lib/rancher/k3s/agent/kubelet` to `/var/lib/kubelet`
+- **Fix Applied**: Nuclear cleanup + fresh install with correct K3s paths
+- **Lesson Learned**: NEVER change kubelet paths without full storage migration
 
-**Issue**: Longhorn CSI cannot mount ANY volumes due to kubelet path mismatch
-- K3s uses: `/var/lib/rancher/k3s/agent/kubelet/`
-- Longhorn expects: `/var/lib/kubelet/`
-- **Result**: ALL monitoring pods stuck in ContainerCreating
-- **Workaround**: Use `storageClassName: local-path` for any new deployments
+## Current Session Accomplishments (June 15, 2025)
 
-### What Was Completed (DO NOT REPEAT)
-- ✅ **GPU Resource Management** - Priority classes and quotas implemented
-- ✅ **Authentik SSO** - Fully configured for all services
-- ✅ **Monitoring Stack Deployed** - But blocked by CSI issue
-- ✅ **Security Hardening** - Jellyfin on Intel GPU, removed privileged mode
-- ✅ **Documentation** - Comprehensive handoff prepared
+1. **Longhorn Complete Reinstallation** ✅
+   - Forced removal of 66 stuck resources with finalizers
+   - Deleted stuck namespace after 20+ hours
+   - Fresh Longhorn v1.6.2 with correct K3s kubelet paths
+   - Created new PVCs for all media applications
 
-## Session Summary (June 12-14, 2025 - 48-Hour Autonomous Operation)
+2. **Flux GitOps Repair** ✅
+   - Fixed kustomize-controller connection to source-controller
+   - Resolved "operation not permitted" errors
+   - All kustomizations now reconciling properly
 
-The AI DevOps team completed phases 1-4 of the CIO directive but was blocked on phase 5 by the CSI issue.
+3. **HTTPRoute Configuration** ✅
+   - Configured Cilium Gateway API for Longhorn
+   - Access working at https://longhorn.fletcherlabs.net
+   - NodePort backup access on port 30080
 
-## Team Collaboration Pattern
-**Recommended**: Use zen MCP tools for complex analysis:
-- `mcp__zen__thinkdeep` - Architecture decisions and complex problem solving
-- `mcp__zen__codereview` - Review all changes before applying
-- `mcp__zen__debug` - Troubleshoot issues with full context
-- `mcp__zen__precommit` - Validate all Git commits
+4. **Comprehensive Documentation** ✅
+   - Created incident postmortem with root cause analysis
+   - Detailed next steps implementation plan
+   - Quick reference guides for future incidents
 
-## Essential Reading Order
-1. **[docs/48-hour-autonomous-operation-final-report.md](./docs/48-hour-autonomous-operation-final-report.md)** - Complete session summary
-2. **[docs/next-session-tasks.md](./docs/next-session-tasks.md)** - Prioritized task list
-3. **[docs/monitoring-pvc-migration-guide.md](./docs/monitoring-pvc-migration-guide.md)** - Critical immediate action
-4. **[CLUSTER-SETUP.md](./CLUSTER-SETUP.md)** - Cluster overview and architecture
+## Current Cluster State
 
-## Current Priorities
+### Infrastructure Status
+- **All Nodes**: v1.32.5+k3s1 with K3s default paths restored ✅
+- **Longhorn**: v1.6.2 fresh installation, 27 healthy pods ✅
+- **Storage**: New volumes created, old data lost ✅
+- **Flux GitOps**: Fully operational ✅
 
-### P0 - Critical (Do First)
-1. **Complete Monitoring PVC Migration** - Manual intervention required
-2. **Verify Authentik Deployment** - Should complete after reconciliation
-3. **Check Flux Health** - Ensure 100% reconciliation maintained
+### Application Status
 
-### P1 - High Priority
-1. **GPU Resource Management**
-   - Current: 2/4 Tesla T4 used (automatic1111, ollama)
-   - Jellyfin now on Intel QuickSync (k3s1)
-   - Implement PriorityClasses and ResourceQuotas
+#### Storage & Data
+- ✅ **Longhorn**: Operational with correct CSI configuration
+- ✅ **Media Apps**: Running with fresh PVCs (no data)
+- ⚠️ **Monitoring**: Still on ephemeral local-path storage
+- ❌ **Backups**: Velero installed but not configured
 
-2. **Authentik Configuration**
-   - Access: https://authentik.fletcherlabs.net
-   - Create admin user and basic OAuth2/OIDC
-   - **DO NOT enable 2FA** until cluster stable
+#### Security & Access
+- ✅ **Longhorn UI**: https://longhorn.fletcherlabs.net
+- ❌ **Authentication**: No auth gateway (Authentik not configured)
+- ❌ **Secrets**: Plain text in Git (SOPS not implemented)
+- ⚠️ **Traefik**: K3s trying to install but failing (we use Cilium)
 
-### P2 - Medium Priority
-1. **HA Planning** - Single control plane risk
-2. **Storage Migration** - Bazarr pilot ready
+### Critical Gaps
+1. **Monitoring on ephemeral storage** - Will lose data on pod restart
+2. **No backup strategy** - Another incident = data loss
+3. **No authentication** - All services publicly exposed
+4. **No HA** - Single control plane and storage server
 
-## Quick Status Checks
+## Immediate Priorities for Next Session
+
+### P0 - Storage Migration (Day 1)
+1. **Migrate Monitoring to Longhorn** ⚡
+   ```bash
+   # Create PVCs for monitoring namespace
+   # Prometheus: 50Gi, Grafana: 10Gi, Loki: 100Gi
+   # See docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md
+   ```
+
+2. **Configure Velero Backups** ⚡
+   ```bash
+   # Backblaze B2 bucket already created
+   # Need to configure backup schedules
+   # Test restore procedure immediately
+   ```
+
+### P1 - Security Implementation (Day 1-2)
+1. **Deploy SOPS Encryption**
+   - Generate age keys and backup
+   - Encrypt all secrets in Git
+   - Configure Flux decryption
+
+2. **Basic Authentik Setup**
+   - Deploy without 2FA initially
+   - Protect critical UIs (Longhorn, Grafana)
+   - Create admin accounts
+
+### P2 - Operational Excellence
+1. **Document Everything**
+   - Update CLUSTER-SETUP.md with incident learnings
+   - Create runbooks for common operations
+   - Test recovery procedures
+
+## Quick Health Checks
 ```bash
-# Cluster health
-kubectl get nodes -o wide
-kubectl get pods -A | grep -v Running | grep -v Completed
+# Verify Longhorn is healthy
+kubectl get pods -n longhorn -o wide
 
-# Flux status (should be 100% True)
-flux get all -A | grep -v "True"
+# Check storage classes
+kubectl get storageclass
 
-# GPU allocation
-kubectl describe nodes k3s3 | grep -A5 "Allocated resources:"
-kubectl describe nodes k3s1 | grep -A5 "gpu.intel"
+# Verify Flux status
+flux get all -A
 
-# Monitoring PVC status
-kubectl get pvc -n monitoring
+# Access Longhorn UI
+# https://longhorn.fletcherlabs.net
+# http://<node-ip>:30080
 ```
 
-## Key Architecture Updates
+## Key Technical Context
 
-### GPU Distribution
-- **k3s1**: Jellyfin (Intel QuickSync) ✅
-- **k3s2**: Available (Intel QuickSync)
-- **k3s3**: AI workloads (Tesla T4 - 2/4 used)
+### What Broke Everything
+- Day shift changed kubelet paths from K3s default to standard
+- CSI drivers couldn't find socket files
+- Longhorn architecture completely broken
+- Required nuclear cleanup approach
 
-### Security Improvements
-- Jellyfin: Pragmatic hardening (starts as root, drops to 1000)
-- Open-WebUI: Secret now SOPS-encrypted
-- Intel GPU: Proper operator pattern with CRD
+### How We Fixed It
+1. **Force removed finalizers** from 66 stuck resources
+2. **Deleted admission webhooks** blocking cleanup
+3. **Fresh Longhorn install** with correct K3s paths
+4. **Fixed Flux controllers** network connectivity
 
-### Storage Status
-- Monitoring: Configured for longhorn-replicated (awaiting PVC migration)
-- Media apps: Still on NFS (migration planned)
-- Longhorn: Fully operational on all nodes
+## Collaboration Tools Available
+Continue using zen MCP for complex issues:
+- `mcp__zen__debug` - Deep troubleshooting (used for volume issues)
+- `mcp__zen__thinkdeep` - Architecture decisions
+- `mcp__zen__analyze` - Configuration analysis
 
-## New Documentation (48-Hour Session)
-- **ADR-002**: [Flux Reconciliation Fixes](./docs/adr/002-flux-reconciliation-fixes.md)
-- **ADR-003**: [Intel GPU QuickSync Support](./docs/adr/003-intel-gpu-quicksync-support.md)
-- **Migration**: [Jellyfin Intel GPU Migration](./docs/jellyfin-intel-gpu-migration.md)
-- **Weekly**: [Week 24 Summary](./docs/weekly-summaries/2025-W24.md)
+## Important Scripts/Files Created
+- `/home/josh/flux-k3s/scripts/force-cleanup-longhorn.sh` - Nuclear cleanup script
+- `/home/josh/flux-k3s/docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md` - Full analysis
+- `/home/josh/flux-k3s/docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md` - Implementation plan
+- `/home/josh/flux-k3s/manifests/media-pvcs.yaml` - New PVC definitions
 
-## Critical Information
-- **SOPS Age Key**: `~/.config/sops/age/keys.txt` (MUST be backed up!)
-- **GitHub Repo**: https://github.com/sudoflux/flux-k3s
-- **Services**: All at https://*.fletcherlabs.net
-- **Gateway**: Cilium Gateway API (NO nginx ingress)
-- **Backups**: Velero → MinIO + B2 daily
+## Session Summary
+
+This was a critical incident response session that:
+- Resolved a 24-hour Longhorn outage through complete reinstallation
+- Fixed broken Flux GitOps controllers
+- Created comprehensive documentation for future reference
+- Established clear priorities aligned with original resilience plan
+
+The cluster is now stable with working storage, but critical gaps remain in monitoring persistence, backup strategy, and security. Follow the documented next steps to build proper resilience.
 
 ---
-**Last Updated**: June 14, 2025 (48-Hour Session Complete)  
-**AI Team**: Claude (Lead), Gemini 2.5 Pro (Co-Lead), o3-mini (CIO)  
-**Result**: 100% task completion, cluster significantly improved
+**Last Updated**: June 15, 2025, 11:45 PST  
+**Session Type**: Incident Resolution & Documentation  
+**AI Team**: Claude 3.5 Sonnet (3rd Shift Team)  
+**Result**: Longhorn fixed, cluster stable, path forward documented

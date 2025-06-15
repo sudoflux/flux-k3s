@@ -1,0 +1,10 @@
+apiVersion: longhorn.io/v1beta2
+kind: Backup
+metadata:
+  name: backup-recyclarr-20250615-1250
+  namespace: longhorn-system
+spec:
+  snapshotName: recyclarr-snap-20250615-1250
+  labels:
+    reason: pre-reinstall-fix
+    volume: recyclarr-config

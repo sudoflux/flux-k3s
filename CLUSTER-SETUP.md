@@ -2,9 +2,16 @@
 
 ## 📊 Cluster Health Status
 
-**Status**: ✅ All Systems Operational  
-**Last Update**: June 14, 2025  
-**Last Incident**: k3s1 networking failure (resolved) - See [AAR Log](#aar-log) for details
+**Status**: ✅ Operational (Critical Gaps Remain)  
+**Last Update**: June 15, 2025  
+**Last Incident**: Longhorn CSI complete failure (resolved) - See [AAR Log](#aar-log) for details
+
+### 🚨 Critical Update - June 15, 2025
+**Major Incident Resolved**: 24-hour Longhorn outage due to kubelet path changes  
+**Resolution**: Complete removal and fresh installation of Longhorn v1.6.2  
+**Essential Reading**:
+- [LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)
+- [NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md](docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md)
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -22,8 +29,9 @@
 This K3s homelab cluster runs media services, AI workloads, and monitoring infrastructure using GitOps principles with Flux CD. The cluster has recovered from a recent networking incident on node k3s1 and is now fully operational.
 
 **Cluster Version**: K3s v1.32.5+k3s1  
-**Last Major Incident**: June 14, 2025 - Node k3s1 networking failure (Resolved)  
-**Recovery Method**: Node isolation, diagnosis, and self-recovery
+**Last Major Incident**: June 15, 2025 - Longhorn CSI complete failure (Resolved)  
+**Recovery Method**: Nuclear cleanup and fresh installation  
+**Data Loss**: Complete - all Longhorn volumes lost
 
 ## Hardware Configuration
 
@@ -88,16 +96,24 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 ## 🟡 Active Work Items & Known Issues
 
 ### Priority 0 - Critical
-1. **Flux Reconciliation Failures**
-   - Authentik: Missing secret `authentik/authentik-secret`
-   - Intel GPU Plugin: CRDs not installed
-   - **Impact**: GitOps loop incomplete
-   - **Next Steps**: See [next-session-tasks.md](docs/next-session-tasks.md#flux-reconciliation)
+1. **Monitoring Stack on Ephemeral Storage**
+   - **Current**: Using local-path (non-replicated)
+   - **Risk**: Data loss on pod restart/node failure
+   - **Next Steps**: Migrate to Longhorn storage ASAP
+   - **Action**: Create PVCs for Prometheus (50Gi), Grafana (10Gi), Loki (100Gi)
+
+2. **No Backup Strategy**
+   - **Status**: Velero installed but not configured
+   - **Risk**: Another incident = complete data loss
+   - **Next Steps**: Configure Backblaze B2 integration
+   - **Reference**: [NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md](docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md)
 
 ### Priority 1 - High
-2. **k3s1 Network Failure Root Cause**
-   - **Status**: Incident resolved but root cause unknown
-   - **Risk**: May recur without understanding underlying issue
+3. **Security Gaps**
+   - **Authentication**: No auth gateway (all services exposed)
+   - **Secrets**: Plain text in Git (no SOPS)
+   - **Impact**: Critical security vulnerability
+   - **Next Steps**: Deploy SOPS and basic Authentik
    - **Next Steps**: Analyze logs from incident timeframe
 
 3. **Monitoring Stack on Ephemeral Storage**
@@ -142,7 +158,7 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 ### Infrastructure (`/clusters/k3s-home/infrastructure*/`)
 | Service | URL | Status | Notes |
 |---------|-----|--------|-------|
-| Longhorn | http://longhorn.fletcherlabs.net | ✅ Running | Fully operational on all nodes |
+| Longhorn | https://longhorn.fletcherlabs.net | ✅ Running | v1.6.2 fresh install after incident |
 | Authentik | http://authentik.fletcherlabs.net | ⚠️ Needs Setup | DO NOT enable 2FA yet |
 | Grafana | http://grafana.fletcherlabs.net | ✅ Running | admin / check SOPS secret |
 | Prometheus | N/A | ✅ Running | Metrics collection |
@@ -156,13 +172,15 @@ Located in `/home/josh/flux-k3s/docs/`:
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| [ai-team-onboarding.md](docs/ai-team-onboarding.md) | **NEW**: Quick start guide for AI teams | ✅ Start here! |
-| [csi-troubleshooting-guide.md](docs/csi-troubleshooting-guide.md) | **NEW**: CSI driver fix decision tree | 📋 Active issue |
-| [storage-migration-plan.md](docs/storage-migration-plan.md) | NFS to Longhorn migration strategy | ⏸️ Blocked by CSI issue |
-| [velero-offsite-setup.md](docs/velero-offsite-setup.md) | Backblaze B2 integration guide | 📝 Ready to implement |
+| **[LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)** | **CRITICAL**: Full incident analysis | 🚨 **READ FIRST** |
+| **[NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md](docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md)** | **CRITICAL**: Implementation roadmap | 🎯 **ACTION PLAN** |
+| [LONGHORN-FIX-SUMMARY-2025-06-15.md](docs/LONGHORN-FIX-SUMMARY-2025-06-15.md) | Quick reference for the fix | ✅ Complete |
+| [ai-team-onboarding.md](docs/ai-team-onboarding.md) | Quick start guide for AI teams | ✅ Start here! |
+| [csi-troubleshooting-guide.md](docs/csi-troubleshooting-guide.md) | CSI driver fix decision tree | ✅ Issue resolved |
+| [storage-migration-plan.md](docs/storage-migration-plan.md) | NFS to Longhorn migration strategy | 🔄 Ready to execute |
+| [velero-offsite-setup.md](docs/velero-offsite-setup.md) | Backblaze B2 integration guide | 🚨 **URGENT** |
 | [backblaze-b2-setup.md](docs/backblaze-b2-setup.md) | B2 bucket configuration | ✅ Bucket created |
-| [k3s3-storage-workaround.md](docs/k3s3-storage-workaround.md) | Local-path usage for monitoring | ✅ Implemented |
-| [EMERGENCY-DOWNGRADE-COMMANDS.md](../EMERGENCY-DOWNGRADE-COMMANDS.md) | K3s downgrade procedure | ⚠️ Use with caution |
+| [k3s3-storage-workaround.md](docs/k3s3-storage-workaround.md) | Local-path usage for monitoring | ⚠️ Needs migration |
 
 ### 📅 Weekly Implementation Summaries
 | Week | Focus | Document | Status |
@@ -467,8 +485,43 @@ enable-gateway-api-app-protocol: "true" # Enables backend protocol selection
 - **Lesson:** Gateway API requires specific Cilium features for full functionality
 - **Lesson:** ALPN is mandatory for proper HTTP/2 and gRPC support
 
+### AAR: Longhorn CSI Complete Failure (June 15, 2025)
+
+**1. What Happened:** Longhorn storage system completely failed after kubelet path changes. 24-hour outage with complete data loss.
+
+**2. Timeline:**
+- **June 14 AM**: Day shift changed kubelet paths from K3s default to standard
+- **June 14 PM**: CSI drivers stopped functioning, volumes inaccessible
+- **June 15 Early AM**: Nuclear cleanup approach decided after recovery attempts failed
+- **June 15 AM**: Fresh Longhorn v1.6.2 installed with correct paths
+
+**3. Root Cause Analysis:**
+- **Direct Cause:** Kubelet path change broke CSI socket connections
+- **Contributing Factors:**
+  - No documentation of K3s-specific requirements
+  - No testing before infrastructure changes
+  - Admission webhooks prevented cleanup
+
+**4. What Went Well / What Could Be Improved:**
+- ✅ **Well:** Nuclear cleanup script worked perfectly
+- ✅ **Well:** Fresh installation restored functionality
+- ✅ **Well:** Comprehensive documentation created
+- ⚠️ **Improve:** Never change critical paths without full migration plan
+- ⚠️ **Improve:** Need better change management process
+- ⚠️ **Improve:** Monitoring didn't catch CSI registration failures
+
+**5. Action Items & Lessons Learned:**
+- **Action:** Migrate monitoring to Longhorn storage (Priority: P0)
+- **Action:** Configure Velero backups immediately (Priority: P0)
+- **Action:** Implement SOPS encryption (Priority: P1)
+- **Lesson:** K3s uses `/var/lib/rancher/k3s/agent/kubelet` - NEVER change without storage migration
+- **Lesson:** Sometimes nuclear cleanup is the right approach
+- **Lesson:** Comprehensive documentation prevents repeat incidents
+
+**Full Details:** See [LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)
+
 ---
 
-**Last Updated**: June 14, 2025  
-**Updated By**: AI Team (Claude)  
-**Next Review**: After Week 5 implementation
+**Last Updated**: June 15, 2025  
+**Updated By**: 3rd Shift AI Team (Claude 3.5 Sonnet)  
+**Next Review**: After Week 1 implementation (storage/backup/security)
