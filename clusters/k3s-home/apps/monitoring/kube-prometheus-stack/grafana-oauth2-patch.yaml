@@ -1,0 +1,49 @@
+# Grafana OAuth2 Integration Patch
+# Apply this patch to enable OAuth2 authentication with Authentik
+# 
+# Prerequisites:
+# 1. Create OAuth2 provider in Authentik with client ID: grafana
+# 2. Create and encrypt the secret with client secret
+# 3. Apply this patch to the HelmRelease
+#
+# Usage:
+# kubectl patch helmrelease kube-prometheus-stack -n monitoring --type merge --patch-file grafana-oauth2-patch.yaml
+
+spec:
+  values:
+    grafana:
+      # OAuth2 configuration for Authentik
+      grafana.ini:
+        server:
+          domain: grafana.fletcherlabs.net
+          root_url: "%(protocol)s://%(domain)s/"
+        auth:
+          disable_login_form: false
+          oauth_auto_login: true
+          oauth_allow_insecure_email_lookup: true
+        auth.generic_oauth:
+          enabled: true
+          name: Authentik
+          icon: signin
+          allow_sign_up: true
+          auto_login: false
+          client_id: grafana
+          client_secret: "${GRAFANA_OAUTH_CLIENT_SECRET}"  # From SOPS secret
+          scopes: openid profile email groups
+          empty_scopes: false
+          auth_url: https://authentik.fletcherlabs.net/application/o/authorize/
+          token_url: https://authentik.fletcherlabs.net/application/o/token/
+          api_url: https://authentik.fletcherlabs.net/application/o/userinfo/
+          signout_redirect_url: https://authentik.fletcherlabs.net/application/o/grafana/end-session/
+          # Map user attributes
+          login_attribute_path: preferred_username
+          name_attribute_path: name
+          email_attribute_path: email
+          # Role mapping based on Authentik groups
+          role_attribute_path: "contains(groups[*], 'grafana-admins') && 'Admin' || contains(groups[*], 'grafana-editors') && 'Editor' || 'Viewer'"
+          allow_assign_grafana_admin: true
+        security:
+          allow_embedding: true
+      
+      # Add secret reference for OAuth2 client secret
+      envFromSecret: grafana-oauth-credentials

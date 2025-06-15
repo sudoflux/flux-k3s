@@ -1,0 +1,119 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: storage-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    prometheus: kube-prometheus-stack-prometheus
+spec:
+  groups:
+  - name: storage.rules
+    interval: 30s
+    rules:
+    # CSI Driver Registration Failures
+    - alert: CSIDriverRegistrationFailure
+      expr: |
+        kube_pod_container_status_restarts_total{namespace="longhorn-system", container=~".*csi.*"} > 3
+      for: 10m
+      labels:
+        severity: critical
+        component: csi
+      annotations:
+        summary: "CSI driver {{ $labels.container }} registration failures"
+        description: "CSI driver container {{ $labels.container }} in pod {{ $labels.pod }} has restarted {{ $value }} times in the last 10 minutes"
+        runbook_url: "https://kubernetes-csi.github.io/docs/deploying.html#debugging"
+    
+    - alert: CSIDriverNotReady
+      expr: |
+        up{job="kubelet", metrics_path="/metrics/cadvisor"} == 1 
+        unless on(node) 
+        kube_node_status_allocatable{resource="ephemeral-storage"} > 0
+      for: 10m
+      labels:
+        severity: warning
+        component: csi
+      annotations:
+        summary: "CSI driver not ready on node {{ $labels.node }}"
+        description: "CSI driver appears to be not functioning properly on node {{ $labels.node }}"
+    
+    # PVC Provisioning Failures
+    - alert: PersistentVolumeClaimPending
+      expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} > 0
+      for: 15m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "PVC {{ $labels.persistentvolumeclaim }} is pending"
+        description: "PVC {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} has been pending for more than 15 minutes"
+        runbook_url: "https://kubernetes.io/docs/concepts/storage/persistent-volumes/#troubleshooting"
+    
+    - alert: PersistentVolumeClaimLost
+      expr: kube_persistentvolumeclaim_status_phase{phase="Lost"} > 0
+      for: 5m
+      labels:
+        severity: critical
+        component: storage
+      annotations:
+        summary: "PVC {{ $labels.persistentvolumeclaim }} is lost"
+        description: "PVC {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is in Lost state"
+        runbook_url: "https://kubernetes.io/docs/concepts/storage/persistent-volumes/#troubleshooting"
+    
+    # Storage Class issues
+    - alert: DefaultStorageClassMissing
+      expr: |
+        count(kube_storageclass_info) == 0 or
+        count(kube_storageclass_annotations{annotation_storageclass_kubernetes_io_is_default_class="true"}) == 0
+      for: 10m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "No default storage class configured"
+        description: "Kubernetes cluster has no default storage class configured, PVC creation without explicit storageClassName will fail"
+    
+    # Volume attachment issues
+    - alert: VolumeAttachmentFailed
+      expr: kube_volumeattachment_status_attached == 0
+      for: 10m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "Volume attachment {{ $labels.volumeattachment }} failed"
+        description: "Volume attachment {{ $labels.volumeattachment }} has been failing for more than 10 minutes"
+    
+    # Storage capacity alerts
+    - alert: PersistentVolumeCapacityWarning
+      expr: |
+        (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "PV {{ $labels.persistentvolumeclaim }} space usage warning"
+        description: "Persistent volume for claim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is {{ $value | humanize }}% full"
+    
+    - alert: PersistentVolumeCapacityCritical
+      expr: |
+        (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 95
+      for: 5m
+      labels:
+        severity: critical
+        component: storage
+      annotations:
+        summary: "PV {{ $labels.persistentvolumeclaim }} critically low on space"
+        description: "Persistent volume for claim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is {{ $value | humanize }}% full"
+    
+    # Volume snapshot issues
+    - alert: VolumeSnapshotContentError
+      expr: kube_volumesnapshotcontent_status_ready == 0
+      for: 10m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "Volume snapshot content {{ $labels.volumesnapshotcontent }} error"
+        description: "Volume snapshot content {{ $labels.volumesnapshotcontent }} is not ready for more than 10 minutes"

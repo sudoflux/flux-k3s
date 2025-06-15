@@ -1,0 +1,126 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: velero-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    prometheus: kube-prometheus-stack-prometheus
+spec:
+  groups:
+  - name: velero.rules
+    interval: 30s
+    rules:
+    # Backup job failures
+    - alert: VeleroBackupFailed
+      expr: velero_backup_failure_total > 0
+      for: 5m
+      labels:
+        severity: critical
+        component: velero
+      annotations:
+        summary: "Velero backup {{ $labels.backup }} failed"
+        description: "Velero backup {{ $labels.backup }} in namespace {{ $labels.namespace }} has failed"
+        runbook_url: "https://velero.io/docs/latest/troubleshooting/"
+    
+    - alert: VeleroBackupPartiallyFailed
+      expr: velero_backup_partial_failure_total > 0
+      for: 5m
+      labels:
+        severity: warning
+        component: velero
+      annotations:
+        summary: "Velero backup {{ $labels.backup }} partially failed"
+        description: "Velero backup {{ $labels.backup }} in namespace {{ $labels.namespace }} completed with errors"
+        runbook_url: "https://velero.io/docs/latest/troubleshooting/"
+    
+    # Backup schedule issues
+    - alert: VeleroBackupScheduleMissed
+      expr: |
+        time() - velero_backup_last_successful_timestamp > 86400
+      for: 1h
+      labels:
+        severity: warning
+        component: velero
+      annotations:
+        summary: "Velero backup schedule {{ $labels.schedule }} missed"
+        description: "Velero backup schedule {{ $labels.schedule }} has not completed successfully in the last 24 hours"
+    
+    - alert: VeleroBackupScheduleCriticallyMissed
+      expr: |
+        time() - velero_backup_last_successful_timestamp > 172800
+      for: 1h
+      labels:
+        severity: critical
+        component: velero
+      annotations:
+        summary: "Velero backup schedule {{ $labels.schedule }} critically overdue"
+        description: "Velero backup schedule {{ $labels.schedule }} has not completed successfully in the last 48 hours"
+    
+    # Restore failures
+    - alert: VeleroRestoreFailed
+      expr: velero_restore_failure_total > 0
+      for: 5m
+      labels:
+        severity: critical
+        component: velero
+      annotations:
+        summary: "Velero restore {{ $labels.restore }} failed"
+        description: "Velero restore {{ $labels.restore }} in namespace {{ $labels.namespace }} has failed"
+        runbook_url: "https://velero.io/docs/latest/troubleshooting/"
+    
+    - alert: VeleroRestorePartiallyFailed
+      expr: velero_restore_partial_failure_total > 0
+      for: 5m
+      labels:
+        severity: warning
+        component: velero
+      annotations:
+        summary: "Velero restore {{ $labels.restore }} partially failed"
+        description: "Velero restore {{ $labels.restore }} in namespace {{ $labels.namespace }} completed with errors"
+    
+    # Velero component health
+    - alert: VeleroDeploymentNotReady
+      expr: |
+        kube_deployment_status_replicas_ready{deployment="velero", namespace="velero"} < 
+        kube_deployment_spec_replicas{deployment="velero", namespace="velero"}
+      for: 10m
+      labels:
+        severity: critical
+        component: velero
+      annotations:
+        summary: "Velero deployment not ready"
+        description: "Velero deployment has {{ $value }} ready replicas, which is less than desired"
+    
+    # Restic/Kopia repository issues
+    - alert: VeleroRepositoryNotReady
+      expr: velero_backup_repository_ready == 0
+      for: 10m
+      labels:
+        severity: warning
+        component: velero
+      annotations:
+        summary: "Velero backup repository {{ $labels.repository }} not ready"
+        description: "Velero backup repository {{ $labels.repository }} in namespace {{ $labels.namespace }} is not ready"
+    
+    # Backup duration alerts
+    - alert: VeleroBackupDurationWarning
+      expr: velero_backup_duration_seconds > 3600
+      for: 5m
+      labels:
+        severity: warning
+        component: velero
+      annotations:
+        summary: "Velero backup {{ $labels.backup }} taking too long"
+        description: "Velero backup {{ $labels.backup }} has been running for more than {{ $value | humanizeDuration }}"
+    
+    # Backup size alerts
+    - alert: VeleroBackupSizeWarning
+      expr: velero_backup_size_bytes > 10737418240  # 10GB
+      for: 5m
+      labels:
+        severity: warning
+        component: velero
+      annotations:
+        summary: "Large Velero backup detected"
+        description: "Velero backup {{ $labels.backup }} is {{ $value | humanize1024 }}B in size"

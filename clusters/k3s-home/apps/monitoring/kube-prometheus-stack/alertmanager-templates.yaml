@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-templates
+  namespace: monitoring
+data:
+  default.tmpl: |
+    {{ define "cluster" }}{{ .GroupLabels.cluster | toUpper }}{{ end }}
+    {{ define "severity" }}{{ .GroupLabels.severity | toUpper }}{{ end }}
+    
+    {{ define "__alert_silence_link" -}}
+    {{ .ExternalURL }}/#/silences/new?filter=%7B{{ range .CommonLabels.SortedPairs -}}
+    {{ if ne .Name "alertname" -}}
+    {{ .Name }}%3D"{{ .Value | urlquery }}"{{- end -}}
+    {{- end -}}%7D
+    {{- end }}
+    
+    {{ define "__alert_severity_prefix" -}}
+    {{ if eq .CommonLabels.severity "critical" -}}
+    🔴 CRITICAL:
+    {{- else if eq .CommonLabels.severity "warning" -}}
+    🟡 WARNING:
+    {{- else -}}
+    ℹ️ INFO:
+    {{- end }}
+    {{- end }}
+    
+    {{ define "default.__text_alert_list" }}{{ range . }}
+    ---
+    {{ template "__alert_severity_prefix" . }} {{ .Annotations.summary }}
+    
+    {{ .Annotations.description }}
+    
+    Labels:
+    {{ range .Labels.SortedPairs }}  - {{ .Name }}: {{ .Value }}
+    {{ end }}
+    {{ if .Annotations.runbook_url }}
+    Runbook: {{ .Annotations.runbook_url }}
+    {{ end }}
+    Source: {{ .GeneratorURL }}
+    Silence: {{ template "__alert_silence_link" . }}
+    
+    {{ end }}{{ end }}
+    
+    {{ define "default.title" }}
+    {{ template "__alert_severity_prefix" . }} 
+    {{ .GroupLabels.alertname }} - {{ .GroupLabels.component | default "unknown" }}
+    {{ end }}
+    
+    {{ define "default.message" }}
+    {{ if gt (len .Alerts.Firing) 0 }}
+    **FIRING - {{ len .Alerts.Firing }} alert(s)**
+    {{ template "default.__text_alert_list" .Alerts.Firing }}
+    {{ end }}
+    {{ if gt (len .Alerts.Resolved) 0 }}
+    **RESOLVED - {{ len .Alerts.Resolved }} alert(s)**
+    {{ template "default.__text_alert_list" .Alerts.Resolved }}
+    {{ end }}
+    {{ end }}

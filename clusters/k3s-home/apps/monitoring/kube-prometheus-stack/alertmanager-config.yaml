@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+      # Global settings for email notifications
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'alerts@fletcherlabs.net'
+      smtp_auth_username: 'alerts@fletcherlabs.net'
+      smtp_auth_password: '${SMTP_PASSWORD}'  # Will be replaced by SOPS
+      smtp_auth_identity: 'alerts@fletcherlabs.net'
+      
+    # Templates for better formatting
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
+    
+    # Notification receivers
+    receivers:
+    # Null receiver for ignored alerts
+    - name: 'null'
+    
+    # Default receiver for all alerts
+    - name: 'default'
+      email_configs:
+      - to: 'admin@fletcherlabs.net'
+        send_resolved: true
+        headers:
+          Subject: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+        html: |
+          {{ range .Alerts }}
+          <h3>Alert: {{ .Labels.alertname }}</h3>
+          <p><b>Severity:</b> {{ .Labels.severity }}</p>
+          <p><b>Component:</b> {{ .Labels.component }}</p>
+          <p><b>Summary:</b> {{ .Annotations.summary }}</p>
+          <p><b>Description:</b> {{ .Annotations.description }}</p>
+          {{ if .Annotations.runbook_url }}
+          <p><b>Runbook:</b> <a href="{{ .Annotations.runbook_url }}">{{ .Annotations.runbook_url }}</a></p>
+          {{ end }}
+          <p><b>Started:</b> {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</p>
+          {{ if .EndsAt }}
+          <p><b>Ended:</b> {{ .EndsAt.Format "2006-01-02 15:04:05 MST" }}</p>
+          {{ end }}
+          <hr>
+          {{ end }}
+    
+    # Critical alerts receiver (could be PagerDuty, SMS, etc.)
+    - name: 'critical'
+      email_configs:
+      - to: 'critical@fletcherlabs.net'
+        send_resolved: true
+        headers:
+          Subject: '[CRITICAL] {{ .GroupLabels.alertname }} - IMMEDIATE ACTION REQUIRED'
+          Priority: 'urgent'
+          X-Priority: '1'
+      # Webhook for potential integration with other services
+      webhook_configs:
+      - url: 'http://alertmanager-webhook-logger:8080/alerts'
+        send_resolved: true
+    
+    # Storage-specific alerts
+    - name: 'storage-team'
+      email_configs:
+      - to: 'storage-alerts@fletcherlabs.net'
+        send_resolved: true
+        headers:
+          Subject: '[STORAGE] {{ .GroupLabels.alertname }} - {{ .GroupLabels.component }}'
+    
+    # Backup-specific alerts
+    - name: 'backup-team'
+      email_configs:
+      - to: 'backup-alerts@fletcherlabs.net'
+        send_resolved: true
+        headers:
+          Subject: '[BACKUP] {{ .GroupLabels.alertname }} - Velero Alert'
+    
+    # Security/Auth alerts
+    - name: 'security-team'
+      email_configs:
+      - to: 'security-alerts@fletcherlabs.net'
+        send_resolved: true
+        headers:
+          Subject: '[SECURITY] {{ .GroupLabels.alertname }} - Authentication Alert'
+          Priority: 'high'
+    
+    # Routing tree
+    route:
+      # Default grouping
+      group_by: ['alertname', 'cluster', 'component']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: 'default'
+      
+      routes:
+      # Ignore certain alerts
+      - receiver: 'null'
+        matchers:
+        - alertname =~ "InfoInhibitor|Watchdog"
+        continue: false
+      
+      # Critical alerts - immediate notification
+      - receiver: 'critical'
+        matchers:
+        - severity = "critical"
+        group_wait: 10s
+        group_interval: 1m
+        repeat_interval: 1h
+        continue: true
+      
+      # Storage-related alerts
+      - receiver: 'storage-team'
+        matchers:
+        - component =~ "longhorn|storage|csi"
+        group_by: ['alertname', 'component', 'namespace']
+        continue: true
+      
+      # Backup-related alerts
+      - receiver: 'backup-team'
+        matchers:
+        - component = "velero"
+        group_by: ['alertname', 'backup', 'schedule']
+        continue: true
+      
+      # Security/Authentication alerts
+      - receiver: 'security-team'
+        matchers:
+        - component = "authentik"
+        group_wait: 10s
+        group_interval: 1m
+        repeat_interval: 30m
+        continue: true
+      
+      # Node alerts grouped by instance
+      - receiver: 'default'
+        matchers:
+        - component = "node"
+        group_by: ['alertname', 'instance']
+        continue: true
+      
+      # Kubernetes alerts grouped by namespace
+      - receiver: 'default'
+        matchers:
+        - component = "kubernetes"
+        group_by: ['alertname', 'namespace', 'pod']
+        continue: true
+    
+    # Inhibition rules
+    inhibit_rules:
+    # If a cluster is completely down, inhibit all other alerts
+    - source_matchers:
+      - alertname = "ClusterDown"
+      target_matchers:
+      - alertname != "ClusterDown"
+      equal:
+      - cluster
+    
+    # If a node is down, inhibit alerts from that node
+    - source_matchers:
+      - alertname = "NodeDown"
+      target_matchers:
+      - alertname != "NodeDown"
+      equal:
+      - instance
+    
+    # If Longhorn is completely down, inhibit volume-specific alerts
+    - source_matchers:
+      - alertname = "LonghornSystemDown"
+      target_matchers:
+      - component = "longhorn"
+      - alertname != "LonghornSystemDown"
+    
+    # If filesystem is full, inhibit high usage warnings
+    - source_matchers:
+      - alertname = "NodeFilesystemAlmostOutOfSpace"
+      target_matchers:
+      - alertname = "NodeFilesystemSpaceFillingUp"
+      equal:
+      - instance
+      - device
+    
+    # If PVC is critically full, inhibit warning
+    - source_matchers:
+      - alertname = "PersistentVolumeCapacityCritical"
+      target_matchers:
+      - alertname = "PersistentVolumeCapacityWarning"
+      equal:
+      - namespace
+      - persistentvolumeclaim

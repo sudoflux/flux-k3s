@@ -1,0 +1,144 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kubernetes-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    prometheus: kube-prometheus-stack-prometheus
+spec:
+  groups:
+  - name: kubernetes.rules
+    interval: 30s
+    rules:
+    # Critical pod restarts
+    - alert: PodCrashLooping
+      expr: |
+        rate(kube_pod_container_status_restarts_total[15m]) > 0
+      for: 10m
+      labels:
+        severity: critical
+        component: kubernetes
+      annotations:
+        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} has restarted {{ $value | humanize }} times in the last 15 minutes"
+        runbook_url: "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/podcrashlooping"
+    
+    - alert: PodRestartingTooOften
+      expr: |
+        kube_pod_container_status_restarts_total > 5
+      for: 5m
+      labels:
+        severity: warning
+        component: kubernetes
+      annotations:
+        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} restarting frequently"
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} has restarted {{ $value }} times"
+    
+    # Critical workload issues
+    - alert: DeploymentReplicasMismatch
+      expr: |
+        kube_deployment_spec_replicas != kube_deployment_status_replicas_available
+      for: 15m
+      labels:
+        severity: warning
+        component: kubernetes
+      annotations:
+        summary: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} replica mismatch"
+        description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has {{ $value }} replicas available, but spec requires {{ $labels.spec_replicas }}"
+    
+    - alert: StatefulSetReplicasMismatch
+      expr: |
+        kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas
+      for: 15m
+      labels:
+        severity: warning
+        component: kubernetes
+      annotations:
+        summary: "StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} replica mismatch"
+        description: "StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has {{ $value }} ready replicas, but {{ $labels.replicas }} are expected"
+    
+    - alert: DaemonSetNotScheduled
+      expr: |
+        kube_daemonset_status_number_unavailable > 0
+      for: 15m
+      labels:
+        severity: warning
+        component: kubernetes
+      annotations:
+        summary: "DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} pods not scheduled"
+        description: "{{ $value }} pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are not scheduled"
+    
+    # Pod status issues
+    - alert: PodNotReady
+      expr: |
+        sum by (namespace, pod) (
+          kube_pod_status_phase{phase=~"Pending|Unknown"} == 1
+        ) > 0
+      for: 15m
+      labels:
+        severity: warning
+        component: kubernetes
+      annotations:
+        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} not ready"
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in {{ $labels.phase }} state for more than 15 minutes"
+    
+    - alert: ContainerWaiting
+      expr: |
+        sum by (namespace, pod, container) (
+          kube_pod_container_status_waiting_reason{reason!="ContainerCreating"} == 1
+        ) > 0
+      for: 15m
+      labels:
+        severity: warning
+        component: kubernetes
+      annotations:
+        summary: "Container {{ $labels.container }} waiting"
+        description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} has been in waiting state for more than 15 minutes. Reason: {{ $labels.reason }}"
+    
+    # Job failures
+    - alert: JobFailed
+      expr: |
+        kube_job_status_failed > 0
+      for: 5m
+      labels:
+        severity: warning
+        component: kubernetes
+      annotations:
+        summary: "Job {{ $labels.namespace }}/{{ $labels.job_name }} failed"
+        description: "Job {{ $labels.namespace }}/{{ $labels.job_name }} has failed {{ $value }} times"
+    
+    - alert: CronJobSuspended
+      expr: |
+        kube_cronjob_spec_suspend != 0
+      for: 1h
+      labels:
+        severity: info
+        component: kubernetes
+      annotations:
+        summary: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} is suspended"
+        description: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} has been suspended for more than 1 hour"
+    
+    # Resource quota issues
+    - alert: NamespaceQuotaExceeded
+      expr: |
+        kube_resourcequota{type="used"} / kube_resourcequota{type="hard"} > 0.90
+      for: 15m
+      labels:
+        severity: warning
+        component: kubernetes
+      annotations:
+        summary: "Namespace {{ $labels.namespace }} quota almost exceeded"
+        description: "Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage }} of its {{ $labels.resource }} quota"
+    
+    # Critical system pods
+    - alert: CriticalPodNotReady
+      expr: |
+        kube_pod_status_ready{namespace=~"kube-system|flux-system|longhorn-system|velero|monitoring", condition="false"} == 1
+      for: 5m
+      labels:
+        severity: critical
+        component: kubernetes
+      annotations:
+        summary: "Critical pod {{ $labels.namespace }}/{{ $labels.pod }} not ready"
+        description: "Critical system pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready"

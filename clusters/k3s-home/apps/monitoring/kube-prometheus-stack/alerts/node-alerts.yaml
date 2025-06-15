@@ -1,0 +1,139 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: node-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    prometheus: kube-prometheus-stack-prometheus
+spec:
+  groups:
+  - name: node.rules
+    interval: 30s
+    rules:
+    # Node disk space warnings
+    - alert: NodeFilesystemSpaceFillingUp
+      expr: |
+        (
+          node_filesystem_avail_bytes{fstype!="",job="node-exporter"} / node_filesystem_size_bytes{fstype!="",job="node-exporter"} < 0.20
+        and
+          predict_linear(node_filesystem_avail_bytes{fstype!="",job="node-exporter"}[6h], 24*60*60) < 0
+        and
+          node_filesystem_readonly{fstype!="",job="node-exporter"} == 0
+        )
+      for: 5m
+      labels:
+        severity: warning
+        component: node
+      annotations:
+        summary: "Node filesystem {{ $labels.device }} space filling up"
+        description: "Filesystem {{ $labels.device }} on node {{ $labels.instance }} has only {{ $value | humanizePercentage }} available space left and is filling up"
+        runbook_url: "https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemspacefillingup"
+    
+    - alert: NodeFilesystemAlmostOutOfSpace
+      expr: |
+        (
+          node_filesystem_avail_bytes{fstype!="",job="node-exporter"} / node_filesystem_size_bytes{fstype!="",job="node-exporter"} < 0.10
+        and
+          node_filesystem_readonly{fstype!="",job="node-exporter"} == 0
+        )
+      for: 5m
+      labels:
+        severity: critical
+        component: node
+      annotations:
+        summary: "Node filesystem {{ $labels.device }} almost out of space"
+        description: "Filesystem {{ $labels.device }} on node {{ $labels.instance }} has only {{ $value | humanizePercentage }} available space left"
+        runbook_url: "https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace"
+    
+    # Node disk space for specific mount points
+    - alert: NodeRootFilesystemWarning
+      expr: |
+        (node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}) < 0.15
+      for: 5m
+      labels:
+        severity: warning
+        component: node
+      annotations:
+        summary: "Node root filesystem space warning on {{ $labels.instance }}"
+        description: "Root filesystem on node {{ $labels.instance }} has only {{ $value | humanizePercentage }} available space left"
+    
+    - alert: NodeRootFilesystemCritical
+      expr: |
+        (node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}) < 0.05
+      for: 5m
+      labels:
+        severity: critical
+        component: node
+      annotations:
+        summary: "Node root filesystem critically low on {{ $labels.instance }}"
+        description: "Root filesystem on node {{ $labels.instance }} has only {{ $value | humanizePercentage }} available space left"
+    
+    # Node inode exhaustion
+    - alert: NodeFilesystemFilesFillingUp
+      expr: |
+        (
+          node_filesystem_files_free{fstype!="",job="node-exporter"} / node_filesystem_files{fstype!="",job="node-exporter"} < 0.20
+        and
+          predict_linear(node_filesystem_files_free{fstype!="",job="node-exporter"}[6h], 24*60*60) < 0
+        and
+          node_filesystem_readonly{fstype!="",job="node-exporter"} == 0
+        )
+      for: 5m
+      labels:
+        severity: warning
+        component: node
+      annotations:
+        summary: "Node filesystem {{ $labels.device }} inodes filling up"
+        description: "Filesystem {{ $labels.device }} on node {{ $labels.instance }} has only {{ $value | humanizePercentage }} available inodes left and is filling up"
+    
+    - alert: NodeFilesystemAlmostOutOfFiles
+      expr: |
+        (
+          node_filesystem_files_free{fstype!="",job="node-exporter"} / node_filesystem_files{fstype!="",job="node-exporter"} < 0.05
+        and
+          node_filesystem_readonly{fstype!="",job="node-exporter"} == 0
+        )
+      for: 5m
+      labels:
+        severity: critical
+        component: node
+      annotations:
+        summary: "Node filesystem {{ $labels.device }} almost out of inodes"
+        description: "Filesystem {{ $labels.device }} on node {{ $labels.instance }} has only {{ $value | humanizePercentage }} available inodes left"
+    
+    # Node memory pressure
+    - alert: NodeMemoryPressure
+      expr: |
+        (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) < 0.10
+      for: 5m
+      labels:
+        severity: warning
+        component: node
+      annotations:
+        summary: "Node {{ $labels.instance }} under memory pressure"
+        description: "Node {{ $labels.instance }} has only {{ $value | humanizePercentage }} memory available"
+    
+    # Node CPU pressure
+    - alert: NodeHighCPUUsage
+      expr: |
+        100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+      for: 10m
+      labels:
+        severity: warning
+        component: node
+      annotations:
+        summary: "High CPU usage on node {{ $labels.instance }}"
+        description: "Node {{ $labels.instance }} CPU usage is above 80% (current value: {{ $value | humanize }}%)"
+    
+    # Node load average
+    - alert: NodeHighLoadAverage
+      expr: |
+        node_load15 / on(instance) group_left() count(node_cpu_seconds_total{mode="idle"}) by (instance) > 2
+      for: 10m
+      labels:
+        severity: warning
+        component: node
+      annotations:
+        summary: "High load average on node {{ $labels.instance }}"
+        description: "Node {{ $labels.instance }} has a high 15-minute load average relative to number of CPUs (current value: {{ $value | humanize }})"

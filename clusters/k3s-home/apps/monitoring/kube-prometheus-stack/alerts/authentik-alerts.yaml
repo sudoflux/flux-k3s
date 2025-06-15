@@ -1,0 +1,141 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: authentik-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    prometheus: kube-prometheus-stack-prometheus
+spec:
+  groups:
+  - name: authentik.rules
+    interval: 30s
+    rules:
+    # Authentication failures
+    - alert: AuthentikHighFailureRate
+      expr: |
+        rate(authentik_policy_execution_result_total{result="fail"}[5m]) > 0.1
+      for: 10m
+      labels:
+        severity: warning
+        component: authentik
+      annotations:
+        summary: "High authentication failure rate in Authentik"
+        description: "Authentik is experiencing {{ $value | humanize }} failed authentication attempts per second"
+    
+    - alert: AuthentikCriticalFailureRate
+      expr: |
+        rate(authentik_policy_execution_result_total{result="fail"}[5m]) > 0.5
+      for: 5m
+      labels:
+        severity: critical
+        component: authentik
+      annotations:
+        summary: "Critical authentication failure rate in Authentik"
+        description: "Authentik is experiencing {{ $value | humanize }} failed authentication attempts per second - possible brute force attack"
+    
+    # Authentik system health
+    - alert: AuthentikWorkerDown
+      expr: |
+        up{job="authentik-worker"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: authentik
+      annotations:
+        summary: "Authentik worker is down"
+        description: "Authentik worker has been down for more than 5 minutes"
+    
+    - alert: AuthentikServerDown
+      expr: |
+        up{job="authentik-server"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: authentik
+      annotations:
+        summary: "Authentik server is down"
+        description: "Authentik server has been down for more than 5 minutes"
+    
+    # Database connection issues
+    - alert: AuthentikDatabaseConnectionFailure
+      expr: |
+        authentik_database_connections_errors_total > 0
+      for: 5m
+      labels:
+        severity: critical
+        component: authentik
+      annotations:
+        summary: "Authentik database connection failures"
+        description: "Authentik is experiencing database connection errors ({{ $value }} errors)"
+    
+    # LDAP sync issues
+    - alert: AuthentikLDAPSyncFailure
+      expr: |
+        authentik_sources_ldap_sync_errors_total > 0
+      for: 15m
+      labels:
+        severity: warning
+        component: authentik
+      annotations:
+        summary: "Authentik LDAP sync failures"
+        description: "Authentik LDAP source {{ $labels.source }} is experiencing sync failures ({{ $value }} errors)"
+    
+    # OAuth provider issues
+    - alert: AuthentikOAuthProviderError
+      expr: |
+        rate(authentik_providers_oauth_errors_total[5m]) > 0
+      for: 10m
+      labels:
+        severity: warning
+        component: authentik
+      annotations:
+        summary: "Authentik OAuth provider errors"
+        description: "Authentik OAuth provider {{ $labels.provider }} is experiencing errors"
+    
+    # Flow execution issues
+    - alert: AuthentikFlowExecutionError
+      expr: |
+        rate(authentik_flows_execution_errors_total[5m]) > 0
+      for: 10m
+      labels:
+        severity: warning
+        component: authentik
+      annotations:
+        summary: "Authentik flow execution errors"
+        description: "Authentik flow {{ $labels.flow }} is experiencing execution errors"
+    
+    # Certificate expiry
+    - alert: AuthentikCertificateExpiringSoon
+      expr: |
+        authentik_certificate_expiry_days < 30
+      for: 1h
+      labels:
+        severity: warning
+        component: authentik
+      annotations:
+        summary: "Authentik certificate expiring soon"
+        description: "Authentik certificate {{ $labels.certificate }} will expire in {{ $value }} days"
+    
+    - alert: AuthentikCertificateExpiryCritical
+      expr: |
+        authentik_certificate_expiry_days < 7
+      for: 1h
+      labels:
+        severity: critical
+        component: authentik
+      annotations:
+        summary: "Authentik certificate expiring very soon"
+        description: "Authentik certificate {{ $labels.certificate }} will expire in {{ $value }} days"
+    
+    # Task queue issues
+    - alert: AuthentikTaskQueueBacklog
+      expr: |
+        authentik_tasks_queue_length > 100
+      for: 15m
+      labels:
+        severity: warning
+        component: authentik
+      annotations:
+        summary: "Authentik task queue backlog"
+        description: "Authentik has {{ $value }} tasks in queue, indicating processing delays"

@@ -80,6 +80,11 @@ spec:
         podMonitorSelectorNilUsesHelmValues: false
         podMonitorSelector: {}
         podMonitorNamespaceSelector: {}
+        
+        # Rule selector - discover all PrometheusRule resources
+        ruleSelectorNilUsesHelmValues: false
+        ruleSelector: {}
+        ruleNamespaceSelector: {}
 
     # Grafana configuration
     grafana:
@@ -181,23 +186,8 @@ spec:
                 requests:
                   storage: 5Gi
       
-      config:
-        global:
-          resolve_timeout: 5m
-        route:
-          group_by: ['alertname', 'cluster', 'service']
-          group_wait: 10s
-          group_interval: 10s
-          repeat_interval: 12h
-          receiver: 'null'
-          routes:
-            - receiver: 'null'
-              matchers:
-                - alertname =~ "InfoInhibitor|Watchdog"
-        receivers:
-          - name: 'null'
-        templates:
-          - '/etc/alertmanager/config/*.tmpl'
+      # Use external secret for Alertmanager configuration
+      configSecret: alertmanager-config
 
     # K3s specific configurations
     kubeControllerManager:

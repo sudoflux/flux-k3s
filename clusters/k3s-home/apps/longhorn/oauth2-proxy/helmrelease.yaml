@@ -1,0 +1,76 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: longhorn-oauth2-proxy
+  namespace: longhorn-system
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: oauth2-proxy
+      version: "7.7.1"
+      sourceRef:
+        kind: HelmRepository
+        name: oauth2-proxy
+        namespace: flux-system
+  values:
+    config:
+      clientID: longhorn
+      clientSecret: "${LONGHORN_OAUTH_CLIENT_SECRET}"  # From SOPS secret
+      cookieSecret: "${LONGHORN_COOKIE_SECRET}"  # Random 32-byte base64 string
+      configFile: |-
+        email_domains = [ "*" ]
+        upstreams = [ "http://longhorn-frontend:80" ]
+        provider = "oidc"
+        oidc_issuer_url = "https://authentik.fletcherlabs.net/application/o/longhorn/"
+        redirect_url = "https://longhorn.fletcherlabs.net/oauth2/callback"
+        cookie_secure = true
+        cookie_domains = [".fletcherlabs.net"]
+        skip_provider_button = true
+        pass_authorization_header = true
+        pass_access_token = true
+        pass_user_headers = true
+        set_authorization_header = true
+        set_xauthrequest = true
+        
+    ingress:
+      enabled: false  # We'll use Gateway API
+      
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+        
+    replicaCount: 2
+    
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - oauth2-proxy
+              topologyKey: kubernetes.io/hostname
+              
+    # Security context
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 2000
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
+          
+    # Pod security context
+    podSecurityContext:
+      fsGroup: 2000
+      seccompProfile:
+        type: RuntimeDefault

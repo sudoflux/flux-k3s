@@ -1,0 +1,113 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: longhorn-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    prometheus: kube-prometheus-stack-prometheus
+spec:
+  groups:
+  - name: longhorn.rules
+    interval: 30s
+    rules:
+    # Volume health alerts
+    - alert: LonghornVolumeActualSpaceUsedWarning
+      expr: (longhorn_volume_actual_size_bytes / longhorn_volume_capacity_bytes) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        component: longhorn
+      annotations:
+        summary: "Longhorn volume {{ $labels.volume }} space usage warning"
+        description: "Longhorn volume {{ $labels.volume }} in namespace {{ $labels.namespace }} is using {{ $value | humanize }}% of its capacity"
+        runbook_url: "https://longhorn.io/docs/latest/volumes-and-nodes/volume-size/"
+    
+    - alert: LonghornVolumeActualSpaceUsedCritical
+      expr: (longhorn_volume_actual_size_bytes / longhorn_volume_capacity_bytes) * 100 > 95
+      for: 5m
+      labels:
+        severity: critical
+        component: longhorn
+      annotations:
+        summary: "Longhorn volume {{ $labels.volume }} critically low on space"
+        description: "Longhorn volume {{ $labels.volume }} in namespace {{ $labels.namespace }} is using {{ $value | humanize }}% of its capacity"
+        runbook_url: "https://longhorn.io/docs/latest/volumes-and-nodes/volume-size/"
+    
+    # Volume state alerts
+    - alert: LonghornVolumeStatusCritical
+      expr: longhorn_volume_robustness == 3
+      for: 5m
+      labels:
+        severity: critical
+        component: longhorn
+      annotations:
+        summary: "Longhorn volume {{ $labels.volume }} is in critical state"
+        description: "Longhorn volume {{ $labels.volume }} in namespace {{ $labels.namespace }} is in faulted state"
+        runbook_url: "https://longhorn.io/docs/latest/volumes-and-nodes/volume-lifecycle/"
+    
+    - alert: LonghornVolumeStatusDegraded
+      expr: longhorn_volume_robustness == 2
+      for: 5m
+      labels:
+        severity: warning
+        component: longhorn
+      annotations:
+        summary: "Longhorn volume {{ $labels.volume }} is degraded"
+        description: "Longhorn volume {{ $labels.volume }} in namespace {{ $labels.namespace }} is in degraded state"
+        runbook_url: "https://longhorn.io/docs/latest/volumes-and-nodes/volume-lifecycle/"
+    
+    # Node storage alerts
+    - alert: LonghornNodeStorageWarning
+      expr: (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        component: longhorn
+      annotations:
+        summary: "Longhorn node {{ $labels.node }} storage usage warning"
+        description: "Longhorn node {{ $labels.node }} is using {{ $value | humanize }}% of its storage capacity"
+        runbook_url: "https://longhorn.io/docs/latest/volumes-and-nodes/nodes/"
+    
+    - alert: LonghornNodeStorageCritical
+      expr: (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) * 100 > 90
+      for: 5m
+      labels:
+        severity: critical
+        component: longhorn
+      annotations:
+        summary: "Longhorn node {{ $labels.node }} critically low on storage"
+        description: "Longhorn node {{ $labels.node }} is using {{ $value | humanize }}% of its storage capacity"
+        runbook_url: "https://longhorn.io/docs/latest/volumes-and-nodes/nodes/"
+    
+    # Instance manager alerts
+    - alert: LonghornInstanceManagerCPUUsageWarning
+      expr: longhorn_instance_manager_cpu_usage_millicpu > 1500
+      for: 5m
+      labels:
+        severity: warning
+        component: longhorn
+      annotations:
+        summary: "Longhorn instance manager high CPU usage"
+        description: "Longhorn instance manager {{ $labels.instance_manager }} on {{ $labels.node }} is using {{ $value }}m CPU"
+    
+    # Disk health alerts
+    - alert: LonghornDiskCapacityWarning
+      expr: (longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        component: longhorn
+      annotations:
+        summary: "Longhorn disk {{ $labels.disk }} space usage warning"
+        description: "Longhorn disk {{ $labels.disk }} on node {{ $labels.node }} is {{ $value | humanize }}% full"
+    
+    - alert: LonghornDiskCapacityCritical
+      expr: (longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes) * 100 > 90
+      for: 5m
+      labels:
+        severity: critical
+        component: longhorn
+      annotations:
+        summary: "Longhorn disk {{ $labels.disk }} critically low on space"
+        description: "Longhorn disk {{ $labels.disk }} on node {{ $labels.node }} is {{ $value | humanize }}% full"
