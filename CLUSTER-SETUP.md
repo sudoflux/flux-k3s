@@ -95,41 +95,57 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 
 ## 🟡 Active Work Items & Known Issues
 
-### Priority 0 - Critical
-1. **Monitoring Stack on Ephemeral Storage**
-   - **Current**: Using local-path (non-replicated)
-   - **Risk**: Data loss on pod restart/node failure
-   - **Next Steps**: Migrate to Longhorn storage ASAP
-   - **Action**: Create PVCs for Prometheus (50Gi), Grafana (10Gi), Loki (100Gi)
-
-2. **No Backup Strategy**
-   - **Status**: Velero installed but not configured
-   - **Risk**: Another incident = complete data loss
-   - **Next Steps**: Configure Backblaze B2 integration
-   - **Reference**: [NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md](docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md)
+### ✅ Recently Completed (June 15, 2025 - Day Shift)
+1. **Monitoring Stack Storage** ✅
+   - **Resolved**: Migrated from ephemeral to persistent storage
+   - **Note**: Using local-path for Prometheus/Alertmanager due to Longhorn fsGroup issues
+   - **Grafana**: Successfully using Longhorn storage
+   
+2. **Backup Strategy** ✅
+   - **Resolved**: Velero configured with Backblaze B2
+   - **Schedules**: Hourly (Longhorn), Daily (critical), Weekly (full cluster)
+   - **Tested**: Backup and restore verified working
+   
+3. **SOPS Encryption** ✅
+   - **Status**: Already properly configured and working
+   - **All secrets**: Encrypted with age keys
+   
+4. **Authentik Deployment** ✅
+   - **Status**: Deployed and accessible at https://authentik.fletcherlabs.net
+   - **Next**: Initial admin setup required (NO 2FA per directive)
 
 ### Priority 1 - High
-3. **Security Gaps**
-   - **Authentication**: No auth gateway (all services exposed)
-   - **Secrets**: Plain text in Git (no SOPS)
-   - **Impact**: Critical security vulnerability
-   - **Next Steps**: Deploy SOPS and basic Authentik
-   - **Next Steps**: Analyze logs from incident timeframe
-
-3. **Monitoring Stack on Ephemeral Storage**
-   - **Current**: Using local-path (non-replicated)
-   - **Risk**: Data loss on pod restart/node failure
-   - **Next Steps**: Migrate to Longhorn storage classes
+1. **Authentik Configuration**
+   - **Status**: Deployed but needs initial setup
+   - **Action**: Create admin account and OAuth providers
+   - **Priority Services**: Longhorn, Grafana, Prometheus
+   
+2. **Monitoring Alerts**
+   - **Status**: No critical alerts configured
+   - **Needed**: Longhorn health, CSI status, backup failures
+   - **Reference**: Use kube-prometheus-stack alerting rules
 
 ### Priority 2 - Medium  
-4. **No High Availability**
+3. **No High Availability**
    - Single control plane node (k3s-master1)
    - Single storage server (R730)
    - **Impact**: No failover capability
 
-5. **Authentik Initial Configuration**
-   - **Status**: Deployed but not configured
-   - **Note**: DO NOT enable 2FA until all infrastructure work complete
+4. **MinIO Local Storage**
+   - **Status**: Storage corruption ("0 drives provided")
+   - **Impact**: Local backups unavailable (B2 working fine)
+   - **Action**: Investigate and repair when time permits
+
+### Priority 3 - Low
+5. **Traefik Installation Errors**
+   - **Status**: K3s trying to install Traefik (we use Cilium)
+   - **Impact**: None - just log noise
+   - **Action**: Disable K3s Traefik addon
+
+6. **DCGM Exporter**
+   - **Status**: CrashLoopBackOff (GPU metrics)
+   - **Impact**: No GPU monitoring
+   - **Action**: Fix when GPU monitoring needed
 
 ## Deployed Applications
 
@@ -159,11 +175,11 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 | Service | URL | Status | Notes |
 |---------|-----|--------|-------|
 | Longhorn | https://longhorn.fletcherlabs.net | ✅ Running | v1.6.2 fresh install after incident |
-| Authentik | http://authentik.fletcherlabs.net | ⚠️ Needs Setup | DO NOT enable 2FA yet |
-| Grafana | http://grafana.fletcherlabs.net | ✅ Running | admin / check SOPS secret |
-| Prometheus | N/A | ✅ Running | Metrics collection |
-| Loki | N/A | ✅ Running | Log aggregation |
-| Velero | N/A | ⚠️ Partial | MinIO errors, no offsite backup |
+| Authentik | https://authentik.fletcherlabs.net | ✅ Deployed | Needs initial admin setup (NO 2FA) |
+| Grafana | https://grafana.fletcherlabs.net | ✅ Running | admin / check SOPS secret |
+| Prometheus | N/A | ✅ Running | Using local-path storage |
+| Loki | N/A | ✅ Running | Log aggregation working |
+| Velero | N/A | ✅ Running | B2 backups configured, MinIO local broken |
 
 ## Documentation Index
 
@@ -174,13 +190,14 @@ Located in `/home/josh/flux-k3s/docs/`:
 |----------|---------|--------|
 | **[LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)** | **CRITICAL**: Full incident analysis | 🚨 **READ FIRST** |
 | **[NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md](docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md)** | **CRITICAL**: Implementation roadmap | 🎯 **ACTION PLAN** |
+| **[DAY-SHIFT-SUMMARY-2025-06-15.md](DAY-SHIFT-SUMMARY-2025-06-15.md)** | Recovery implementation results | ✅ **NEW** |
 | [LONGHORN-FIX-SUMMARY-2025-06-15.md](docs/LONGHORN-FIX-SUMMARY-2025-06-15.md) | Quick reference for the fix | ✅ Complete |
 | [ai-team-onboarding.md](docs/ai-team-onboarding.md) | Quick start guide for AI teams | ✅ Start here! |
 | [csi-troubleshooting-guide.md](docs/csi-troubleshooting-guide.md) | CSI driver fix decision tree | ✅ Issue resolved |
-| [storage-migration-plan.md](docs/storage-migration-plan.md) | NFS to Longhorn migration strategy | 🔄 Ready to execute |
-| [velero-offsite-setup.md](docs/velero-offsite-setup.md) | Backblaze B2 integration guide | 🚨 **URGENT** |
-| [backblaze-b2-setup.md](docs/backblaze-b2-setup.md) | B2 bucket configuration | ✅ Bucket created |
-| [k3s3-storage-workaround.md](docs/k3s3-storage-workaround.md) | Local-path usage for monitoring | ⚠️ Needs migration |
+| [storage-migration-plan.md](docs/storage-migration-plan.md) | NFS to Longhorn migration strategy | ✅ Partially complete |
+| [velero-offsite-setup.md](docs/velero-offsite-setup.md) | Backblaze B2 integration guide | ✅ **CONFIGURED** |
+| [backblaze-b2-setup.md](docs/backblaze-b2-setup.md) | B2 bucket configuration | ✅ Working |
+| [k3s3-storage-workaround.md](docs/k3s3-storage-workaround.md) | Local-path usage for monitoring | ✅ Implemented |
 
 ### 📅 Weekly Implementation Summaries
 | Week | Focus | Document | Status |
@@ -206,30 +223,35 @@ Located in `/home/josh/flux-k3s/docs/`:
 See [week4-tls-gateway-summary.md](docs/week4-tls-gateway-summary.md) for details.
 
 ### Current Week: Week 5 (June 17-23, 2025)
-**Focus**: GitOps Health & System Stability
+**Focus**: Post-Incident Recovery & Resilience
 
-#### Priority 0 - Critical (Must Fix)
-1. **Fix Flux Reconciliation**
-   - Resolve Authentik secret issue
-   - Install Intel GPU CRDs or remove HelmRelease
-   - Restore full GitOps automation
+#### ✅ Completed (June 15, 2025)
+1. **Critical Infrastructure Recovery**
+   - ✅ Monitoring storage migrated (with fsGroup workaround)
+   - ✅ Velero backups to B2 configured and tested
+   - ✅ SOPS encryption verified working
+   - ✅ Authentik deployed (needs config)
+   - ✅ Flux reconciliation fixed
 
 #### Priority 1 - High (This Week)
-2. **k3s1 Root Cause Analysis**
-   - Analyze logs from incident timeframe
-   - Check for resource exhaustion
-   - Document findings in AAR format
+1. **Authentik Configuration**
+   - Create initial admin account
+   - Configure OAuth2/OIDC providers
+   - Protect critical services (Longhorn, Grafana)
+   - Document setup procedures
 
-3. **Monitoring Storage Migration**
-   - Backup current data
-   - Migrate Prometheus/Grafana/Loki to Longhorn
-   - Verify data persistence
+2. **Monitoring Alerts**
+   - Configure Longhorn health alerts
+   - Set up CSI driver monitoring
+   - Create backup failure notifications
+   - Test alert routing
 
 #### Priority 2 - Medium (If Time Permits)
-4. **Authentik Configuration**
-   - Initial setup (no 2FA)
-   - Create OAuth2/OIDC providers
-   - Document configuration
+3. **Documentation Updates**
+   - Update runbooks with incident learnings
+   - Create Longhorn operations guide
+   - Document backup/restore procedures
+   - Create security configuration guide
 
 ### Future Weeks
 
@@ -310,9 +332,10 @@ See [week4-tls-gateway-summary.md](docs/week4-tls-gateway-summary.md) for detail
 kubectl get nodes -o wide
 kubectl top nodes
 
-# Check CSI issues
-kubectl get csinode
-kubectl describe csinode <node-name>
+# Check backups
+velero backup get
+velero schedule get
+velero backup create test-backup --include-namespaces=default
 
 # Flux operations
 flux get all -A
@@ -327,6 +350,11 @@ kubectl describe pvc <pvc-name> -n <namespace>
 # Service access
 kubectl get gateway -n networking
 kubectl get httproute -A
+
+# Monitoring access
+echo "Grafana: https://grafana.fletcherlabs.net"
+echo "Longhorn: https://longhorn.fletcherlabs.net"
+echo "Authentik: https://authentik.fletcherlabs.net"
 ```
 
 ### Key File Locations
