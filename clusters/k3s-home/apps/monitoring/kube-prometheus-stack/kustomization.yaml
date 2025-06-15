@@ -5,6 +5,7 @@ resources:
   - helm-release.yaml
   - grafana-admin-secret.yaml
   - grafana-httproute.yaml
+  - prometheus-httproute.yaml
   - alerts/  # Include all custom alert rules
   - alertmanager-config.yaml  # Custom Alertmanager configuration
   - alertmanager-templates.yaml  # Alert message templates
