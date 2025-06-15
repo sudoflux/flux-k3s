@@ -26,7 +26,6 @@ spec:
       requests:
         cpu: 100m
         memory: 128Mi
-        nvidia.com/gpu: 0  # Don't request GPU resources, just need access to NVML
       limits:
         cpu: 200m
         memory: 256Mi
