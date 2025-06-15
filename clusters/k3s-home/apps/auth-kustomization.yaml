@@ -11,7 +11,7 @@ spec:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: infrastructure-runtime
+    - name: infra-runtime
     - name: sources
   decryption:
     provider: sops
