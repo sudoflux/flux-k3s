@@ -18,11 +18,15 @@ spec:
     nodeSelector:
       kubernetes.io/hostname: k3s3
     
+    # Use nvidia runtime for GPU access
+    runtimeClassName: nvidia
+    
     # Resource limits
     resources:
       requests:
         cpu: 100m
         memory: 128Mi
+        nvidia.com/gpu: 0  # Don't request GPU resources, just need access to NVML
       limits:
         cpu: 200m
         memory: 256Mi
@@ -53,9 +57,9 @@ spec:
         add:
           - SYS_ADMIN
     
-    # Volume mounts for GPU device access
-    extraHostVolumes:
-      - name: nvidia-install-dir-host
-        hostPath: /usr/local/nvidia
-      - name: device-metrics
-        hostPath: /run/prometheus
+    # Environment variables for NVIDIA libraries
+    extraEnv:
+      - name: NVIDIA_DRIVER_CAPABILITIES
+        value: "utility"
+      - name: NVIDIA_VISIBLE_DEVICES
+        value: "all"
