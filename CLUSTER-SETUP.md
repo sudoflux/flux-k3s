@@ -185,51 +185,43 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
     - **Guide**: `LONGHORN-OAUTH2-SETUP.md` (5-minute setup)
     - **Pending**: Only needs Authentik configuration
 
-### Priority 1 - High (Immediate Action Required)
-1. **Complete Longhorn OAuth2 Setup** 🟡
-   - **Status**: Manifests ready, needs Authentik configuration
-   - **Guide**: [LONGHORN-OAUTH2-SETUP.md](LONGHORN-OAUTH2-SETUP.md)
-   - **Time Required**: ~5 minutes
-   - **Impact**: Longhorn UI still using basic auth
+### 🟡 Active Work Items
 
-### Priority 2 - High (After Prometheus Secured)
-2. **Complete OAuth2 for Other Services**
-   - **Longhorn UI**: Currently using basic auth
-   - **Grafana**: Enhance existing auth
-   - **Templates Ready**: `docs/oauth2-integration-templates.md`
+#### Priority 1 - Critical SPOFs
+1. **Storage Single Point of Failure** 🔴
+   - **Status**: R730 hosts all NFS storage
+   - **Risk**: Hardware failure = 30TB data loss
+   - **Options**: GlusterFS, SeaweedFS, or secondary NFS
 
-3. **DNS Hairpin Resolution**
-   - **Current**: Using hostAlias workaround
-   - **Target**: Configure CoreDNS for proper internal resolution
-   - **Benefit**: Centralized solution for all services
+2. **No Control Plane HA** 🔴
+   - **Status**: Single k3s-master1 VM
+   - **Risk**: VM failure = no cluster management
+   - **Solution**: Deploy 3 masters with embedded etcd
 
-### Priority 3 - Medium  
-4. **No High Availability**
-   - Single control plane node (k3s-master1)
-   - Single storage server (R730)
-   - **Impact**: No failover capability
+#### Priority 2 - Broken Services
+3. **DCGM Exporter** 🟠
+   - **Status**: CrashLoopBackOff
+   - **Impact**: No GPU metrics or time-slicing visibility
+   - **Action**: Debug and fix immediately
 
-5. **SOPS Decryption Issue**
-   - **Status**: Not working in monitoring namespace
-   - **Workaround**: Using temporary plain secret
-   - **Impact**: OAuth2-Proxy secret not encrypted
-   
-6. **MinIO Local Storage**
-   - **Status**: Storage corruption ("0 drives provided")
-   - **Impact**: Local backups unavailable (B2 working fine)
-   - **Action**: Investigate and repair when time permits
+4. **SOPS in Monitoring** 🟠
+   - **Status**: Not decrypting secrets
+   - **Impact**: OAuth2 secrets in plain text
+   - **Workaround**: Manual secret creation
 
-### Priority 4 - Low
-7. **Traefik Installation Errors**
-   - **Status**: K3s trying to install Traefik (we use Cilium)
-   - **Impact**: None - just log noise
-   - **Action**: Run `disable-traefik.sh` on master node
-   - **Guide**: See `disable-traefik-instructions.md`
+#### Priority 3 - Technical Debt
+5. **DNS Hairpin Resolution** 🟡
+   - **Current**: hostAlias workaround in OAuth2 proxies
+   - **Solution**: Configure CoreDNS properly
 
-8. **DCGM Exporter**
-   - **Status**: CrashLoopBackOff (GPU metrics)
-   - **Impact**: No GPU monitoring
-   - **Action**: Fix when GPU monitoring needed
+6. **MinIO Local Storage** 🟡
+   - **Status**: Broken ("0 drives provided")
+   - **Impact**: No local backups (B2 working)
+
+7. **Traefik Noise** 🟢
+   - **Status**: K3s trying to install Traefik
+   - **Impact**: Log spam only
+   - **Fix**: Run disable-traefik.sh
 
 ## Deployed Applications
 
@@ -267,14 +259,15 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 
 ## Documentation Index
 
+### 📊 Critical Documentation
+| Document | Purpose | Priority |
+|----------|---------|----------|
+| **[DEPLOYMENT-ANALYSIS.md](DEPLOYMENT-ANALYSIS.md)** | Comprehensive deployment review & roadmap | 🔴 **START HERE** |
+| **[NEXT-SESSION-PROMPT.md](NEXT-SESSION-PROMPT.md)** | Current priorities and immediate actions | 🎯 **DAILY GUIDE** |
+| **[LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)** | Major incident analysis | 📚 **LESSONS LEARNED** |
+
 ### 🔧 Operational Documentation
 Located in `/home/josh/flux-k3s/docs/`:
-
-| Document | Purpose | Status |
-|----------|---------|--------|
-| **[LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)** | **CRITICAL**: Full incident analysis | 🚨 **READ FIRST** |
-| **[NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md](docs/NEXT-STEPS-AFTER-LONGHORN-2025-06-15.md)** | **CRITICAL**: Implementation roadmap | 🎯 **ACTION PLAN** |
-| **[DAY-SHIFT-SUMMARY-2025-06-15.md](DAY-SHIFT-SUMMARY-2025-06-15.md)** | Recovery implementation results | ✅ **NEW** |
 | [LONGHORN-FIX-SUMMARY-2025-06-15.md](docs/LONGHORN-FIX-SUMMARY-2025-06-15.md) | Quick reference for the fix | ✅ Complete |
 | [ai-team-onboarding.md](docs/ai-team-onboarding.md) | Quick start guide for AI teams | ✅ Start here! |
 | [csi-troubleshooting-guide.md](docs/csi-troubleshooting-guide.md) | CSI driver fix decision tree | ✅ Issue resolved |
@@ -300,14 +293,23 @@ Located in `/home/josh/flux-k3s/docs/`:
 
 ## Implementation Roadmap
 
-### Completed: Week 4 (June 10-16, 2025)
-**Focus**: TLS Implementation & Incident Response
-**Outcome**: All critical issues resolved, HTTPS working, comprehensive documentation updates
+### ✅ Deployment Plan Progress
+See [DEPLOYMENT-ANALYSIS.md](DEPLOYMENT-ANALYSIS.md) for comprehensive review
 
-See [week4-tls-gateway-summary.md](docs/week4-tls-gateway-summary.md) for details.
+| Phase | Status | Completion |
+|-------|--------|------------|
+| Week 1: Security & Backup | ✅ Complete | Authentik, SOPS, Velero all deployed |
+| Week 2-3: Storage Resilience | ✅ Complete | Longhorn deployed with tiered storage |
+| Week 4: Observability | ⚠️ Partial | Prometheus/Loki working, DCGM broken |
+| Month 2: High Availability | ❌ Not Started | Critical SPOFs remain |
+
+### 🔴 Critical Remaining Issues
+1. **Storage SPOF**: R730 failure = total data loss
+2. **Control Plane SPOF**: Single master VM
+3. **GPU Monitoring**: DCGM exporter broken
 
 ### Current Week: Week 5 (June 17-23, 2025)
-**Focus**: Post-Incident Recovery & Security Implementation
+**Focus**: Fix GPU monitoring, test backups, address SPOFs
 
 #### ✅ Completed (June 15-16, 2025)
 1. **Critical Infrastructure Recovery**

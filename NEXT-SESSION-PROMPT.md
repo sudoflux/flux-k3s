@@ -1,194 +1,157 @@
 # Next Session Prompt - K3s Homelab Cluster
 
 ## Session Context
-**Date**: June 16, 2025 (Early Morning Handover)  
-**Critical Issue**: Prometheus STILL exposed without authentication - OAuth2-Proxy ready and waiting  
-**Immediate Priority**: Access Authentik and complete OAuth2 configuration NOW  
+**Date**: June 16, 2025  
+**Status**: Foundation Complete - Critical SPOFs Remain  
+**Last Session**: Secured Prometheus & Longhorn with OAuth2  
+**Comprehensive Analysis**: See [DEPLOYMENT-ANALYSIS.md](DEPLOYMENT-ANALYSIS.md)
 
-## ⚠️ CRITICAL SECURITY ALERT ⚠️
-Prometheus is publicly accessible at https://prometheus.fletcherlabs.net exposing all cluster metrics without authentication. OAuth2-Proxy is deployed and ready - just needs Authentik configuration.
+## 🎉 Recent Accomplishments
+- ✅ Prometheus secured with OAuth2-Proxy + Authentik
+- ✅ Longhorn secured with OAuth2-Proxy + Authentik  
+- ✅ Created automated OAuth2 deployment script
+- ✅ Week 1-3 of deployment plan COMPLETE
 
-## Today's Achievements
+## 🔴 Critical Issues (SPOFs)
 
-### OAuth2-Proxy DNS Resolution Fixed ✅
-- **Problem**: Pods couldn't resolve authentik.fletcherlabs.net internally
-- **Solution**: Added hostAlias to map domain to gateway IP (192.168.10.224)
-- **Result**: OAuth2-Proxy now successfully reaches Authentik
-- **Status**: Getting expected 404 - OAuth2 provider not configured yet
-
-### Documentation Created ✅
-- **CURRENT-CRITICAL-STATUS.md**: Step-by-step guide with exact commands
-- **oauth2-proxy-dns-fix-status.md**: Technical details of the DNS fix
-- **Updated CLUSTER-SETUP.md**: Current status and new AAR entry
-
-## Current Cluster State
-
-### 🔴 EXPOSED Services
-```bash
-https://prometheus.fletcherlabs.net   # NO AUTHENTICATION - Critical Risk!
+### 1. Storage Single Point of Failure
+```
+Current: Dell R730 hosts ALL NFS storage
+Risk: Hardware failure = total media data loss (30TB)
+Priority: CATASTROPHIC
 ```
 
-### ✅ Protected Services
-```bash
-https://longhorn.fletcherlabs.net     # Basic auth
-https://grafana.fletcherlabs.net      # Has authentication
-https://authentik.fletcherlabs.net    # Ready for configuration
+### 2. No Control Plane HA
+```
+Current: Single k3s-master1 VM
+Risk: VM failure = no cluster management
+Priority: CRITICAL
 ```
 
-### OAuth2-Proxy Status
-- **Deployment**: Running with hostAlias DNS fix
-- **Current State**: Waiting for Authentik OAuth2 provider
-- **Expected Error**: 404 on OIDC discovery (normal - provider doesn't exist yet)
-- **Next Step**: Create provider in Authentik
-
-## 🚨 IMMEDIATE ACTIONS REQUIRED (15 minutes total)
-
-### Step 1: Open Authentik (2 minutes)
-```bash
-# In your browser, go to:
-https://authentik.fletcherlabs.net
-
-# You should see either:
-# - Initial setup page (create admin account)
-# - Login page (admin already exists)
+### 3. GPU Monitoring Broken
+```
+Current: DCGM exporter in CrashLoopBackOff
+Risk: No visibility into GPU time-slicing
+Priority: HIGH
 ```
 
-### Step 2: Initial Setup or Login (3 minutes)
-**If Initial Setup Page:**
-- Username: `akadmin`
-- Email: Your admin email
-- Password: Strong password (save it!)
-- **NO 2FA** (per CIO directive)
+## 🎯 Immediate Actions (This Session)
 
-**If Login Page:**
-- Login with existing admin credentials
-- If you don't have them, check with team
-
-### Step 3: Create OAuth2 Provider (5 minutes)
-1. Navigate to: **Applications** → **Providers** → **Create**
-2. Select: **OAuth2/OpenID Provider**
-3. Configure EXACTLY as shown:
-   ```
-   Name: prometheus-provider
-   Authorization flow: default-provider-authorization-implicit-consent
-   Client type: Confidential
-   Client ID: prometheus
-   Client Secret: [COPY THE GENERATED SECRET]
-   Redirect URIs: https://prometheus.fletcherlabs.net/oauth2/callback
-   Scopes: openid profile email
-   ```
-4. Click **Save**
-5. **COPY THE CLIENT SECRET** - You need it for Step 5!
-
-### Step 4: Create Application (2 minutes)
-1. Navigate to: **Applications** → **Applications** → **Create**
-2. Configure:
-   ```
-   Name: Prometheus
-   Slug: prometheus
-   Provider: prometheus-provider
-   Launch URL: https://prometheus.fletcherlabs.net
-   ```
-3. Click **Save**
-
-### Step 5: Update OAuth2-Proxy Secret (3 minutes)
+### 1. Fix DCGM Exporter
 ```bash
-# In terminal, navigate to repo
-cd /home/josh/flux-k3s
+# Debug the GPU monitoring
+kubectl logs -n monitoring $(kubectl get pods -n monitoring -l app.kubernetes.io/name=dcgm-exporter -o jsonpath='{.items[0].metadata.name}')
+kubectl describe pod -n monitoring -l app.kubernetes.io/name=dcgm-exporter
 
-# Edit the secret file
-vi clusters/k3s-home/apps/monitoring/oauth2-proxy-prometheus/temp-secret.yaml
-
-# Find the line:
-#   client-secret: "PLACEHOLDER_WILL_BE_UPDATED_AFTER_AUTHENTIK_SETUP"
-# Replace with:
-#   client-secret: "<paste-secret-from-step-3>"
-
-# Save and exit (:wq)
-
-# Commit and push
-git add -A
-git commit -m "feat: configure OAuth2-Proxy with Authentik credentials"
-git push
-
-# Force reconciliation
-flux reconcile kustomization monitoring --with-source
+# Check if GPU is visible
+kubectl exec -it -n monitoring $(kubectl get pods -n monitoring -l app.kubernetes.io/name=dcgm-exporter -o jsonpath='{.items[0].metadata.name}') -- nvidia-smi
 ```
 
-### Step 6: Verify OAuth2-Proxy Running (1 minute)
+### 2. Test Velero Restore
 ```bash
-# Wait for pods to restart
-sleep 30
+# Create test backup
+velero backup create test-$(date +%Y%m%d-%H%M%S) --include-namespaces default
 
-# Check status - should show Running, not CrashLoopBackOff
-kubectl get pods -n monitoring -l app.kubernetes.io/name=oauth2-proxy
+# List backups
+velero backup get
 
-# Verify logs show successful OIDC discovery
-kubectl logs -n monitoring -l app.kubernetes.io/name=oauth2-proxy --tail=10
+# Create test restore (to different namespace)
+velero restore create test-restore --from-backup <backup-name> --namespace-mappings default:restore-test
 ```
 
-### Step 7: Apply HTTPRoute to Secure Prometheus (1 minute)
+### 3. Fix SOPS in Monitoring Namespace
 ```bash
-# ONLY after OAuth2-Proxy is running successfully!
-kubectl apply -f clusters/k3s-home/apps/monitoring/oauth2-proxy-prometheus/prometheus-httproute-patch.yaml
+# Check kustomize-controller logs
+kubectl logs -n flux-system deployment/kustomize-controller | grep -i "monitoring\|sops"
 
-# Test - should redirect to Authentik login
-curl -I https://prometheus.fletcherlabs.net
+# Verify SOPS configuration
+kubectl get secret -n flux-system sops-age -o yaml
 ```
 
-## If Something Goes Wrong
+## 📋 Today's Priority Order
 
-### OAuth2-Proxy Still Crashing?
+1. **DCGM Exporter** (30 min)
+   - Fix GPU metrics collection
+   - Verify Grafana dashboard
+
+2. **Backup Testing** (45 min)
+   - Test full restore procedure
+   - Document recovery time
+   - Update runbook
+
+3. **SOPS Fix** (30 min)
+   - Debug monitoring namespace
+   - Encrypt OAuth2 secrets
+   - Remove plain text secrets
+
+4. **Documentation** (30 min)
+   - Archive old critical alerts
+   - Update cluster status
+   - Create GPU monitoring guide
+
+## 🏗️ Architecture Decisions Needed
+
+### Storage Redundancy Options
+1. **GlusterFS** - Distributed NFS replacement
+2. **SeaweedFS** - S3-compatible distributed storage  
+3. **Longhorn on all nodes** - Simpler but less efficient
+4. **Secondary NFS + rsync** - Quick win but not ideal
+
+### HA Control Plane Approach
+1. **3x VMs with embedded etcd** - K3s native HA
+2. **External etcd cluster** - More complex, more reliable
+3. **k3sup** for easy multi-master setup
+
+## 📊 Quick Status Check
+
 ```bash
-# Check exact error
-kubectl logs -n monitoring -l app.kubernetes.io/name=oauth2-proxy --tail=50
+# Cluster health
+kubectl get nodes
+kubectl top nodes
 
-# Common issues:
-# - Client secret mismatch
-# - Typo in redirect URI
-# - Provider not saved in Authentik
+# Storage status  
+kubectl get pv,pvc -A | grep -v "Bound"
+kubectl get storageclass
+
+# Pod issues
+kubectl get pods -A | grep -v "Running\|Completed"
+
+# Flux status
+flux get all -A | grep -v "True"
+
+# Backup status
+velero backup get
+velero schedule get
 ```
 
-### Need Immediate Prometheus Access?
+## 🔧 Useful Commands
+
 ```bash
-# TEMPORARY rollback (security risk!)
-kubectl apply -f clusters/k3s-home/apps/monitoring/kube-prometheus-stack/prometheus-httproute.yaml
+# Force reconcile everything
+flux reconcile source git flux-system
+flux reconcile kustomization --all
+
+# Check OAuth2 proxy status
+kubectl get pods -A -l app.kubernetes.io/name=oauth2-proxy
+
+# View recent events
+kubectl get events -A --sort-by='.lastTimestamp' | tail -20
+
+# Check certificate status
+kubectl get certificate -A
 ```
 
-## After Prometheus is Secured
+## 📚 Key Documentation
+- **Comprehensive Analysis**: [DEPLOYMENT-ANALYSIS.md](DEPLOYMENT-ANALYSIS.md)
+- **Cluster Overview**: [CLUSTER-SETUP.md](CLUSTER-SETUP.md)
+- **OAuth2 Automation**: `scripts/deploy-oauth2-service.sh`
+- **Longhorn Incident**: [docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)
 
-### Priority Tasks
-1. **Configure OAuth2 for Longhorn** - Template ready in `docs/oauth2-integration-templates.md`
-2. **Fix SOPS decryption** - OAuth2-Proxy secret should be encrypted
-3. **CoreDNS hairpin solution** - Replace temporary hostAlias fix
-4. **Test monitoring alerts** - Verify Longhorn health alerts work
-
-### Technical Debt
-- OAuth2-Proxy using temporary plain secret (SOPS not decrypting)
-- DNS resolution using hostAlias workaround (need CoreDNS fix)
-- MinIO local storage broken (B2 backups working fine)
-- Traefik still trying to install (just log noise)
-
-## Key Files & Documentation
-- **Urgent Guide**: `CURRENT-CRITICAL-STATUS.md`
-- **Setup Guide**: `docs/authentik-prometheus-setup-guide.md`
-- **OAuth2 Templates**: `docs/oauth2-integration-templates.md`
-- **DNS Fix Details**: `docs/oauth2-proxy-dns-fix-status.md`
-
-## Commands Quick Reference
-```bash
-# Check OAuth2-Proxy status
-kubectl get pods -n monitoring -l app.kubernetes.io/name=oauth2-proxy
-
-# Watch logs
-kubectl logs -n monitoring -l app.kubernetes.io/name=oauth2-proxy -f
-
-# Check HTTPRoute
-kubectl get httproute -n monitoring prometheus
-
-# Force Flux sync
-flux reconcile kustomization monitoring --with-source
-```
+## 🎓 Learning from Incidents
+1. **Always test changes** in non-production first
+2. **Never modify critical paths** without migration plan
+3. **Monitor CSI driver health** continuously
+4. **Document everything** - saved hours during recovery
 
 ---
-**Remember**: Prometheus is exposing sensitive cluster metrics RIGHT NOW. This is your #1 priority!
+**Remember**: Foundation is solid, but those SPOFs need urgent attention!
