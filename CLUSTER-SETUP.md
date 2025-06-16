@@ -200,9 +200,16 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 
 #### Priority 2 - Broken Services
 3. **DCGM Exporter** 🟠
-   - **Status**: CrashLoopBackOff
+   - **Status**: ContainerCreating - Image pull in progress
    - **Impact**: No GPU metrics or time-slicing visibility
-   - **Action**: Debug and fix immediately
+   - **Investigation**: Found pods stuck in ContainerCreating due to slow image pull
+   - **Actions Taken**:
+     - Updated health probes with longer initial delays (60s liveness, 45s readiness)
+     - Added required volume mounts (nvidia-install-dir-host, device-metrics)
+     - Updated to compatible image version (3.3.5-3.4.0-ubuntu22.04)
+     - Restored privileged mode temporarily for debugging
+   - **Current State**: Waiting for large DCGM image to pull (6+ minutes)
+   - **Next Steps**: Monitor pod startup after image pull completes
 
 4. **SOPS in Monitoring** 🟠
    - **Status**: Not decrypting secrets
@@ -739,8 +746,38 @@ enable-gateway-api-app-protocol: "true" # Enables backend protocol selection
 - **Lesson:** HostAlias is a quick fix, CoreDNS is the proper solution
 - **Lesson:** Always test DNS resolution from pod perspective
 
+### AAR: DCGM Exporter Debugging (June 16, 2025)
+
+**1. What Happened:** DCGM exporter pods were stuck in ContainerCreating state on k3s3 node with Tesla T4 GPU.
+
+**2. Timeline:**
+- **Initial State**: Pods showing as Running with 10 restarts, failing health checks
+- **Investigation**: Other GPU workloads (automatic1111) working fine with nvidia runtime
+- **Root Cause**: Combination of missing volume mounts and incompatible image version
+- **Resolution**: Updated configuration but final verification pending due to slow image pull
+
+**3. Technical Issues Resolved:**
+- **Health Probes**: Configured with appropriate delays for GPU initialization (60s/45s)
+- **Volume Mounts**: Added nvidia-install-dir-host and device-metrics mounts
+- **Image Version**: Updated to 3.3.5-3.4.0-ubuntu22.04 (compatible with driver 535)
+- **Security Context**: Temporarily restored privileged mode for debugging
+
+**4. What Went Well / What Could Be Improved:**
+- ✅ **Well:** Systematic debugging approach using team collaboration tools
+- ✅ **Well:** Identified compatibility requirements through web search
+- ✅ **Well:** Configuration updates properly committed to Git
+- ⚠️ **Improve:** Large container images (DCGM) cause extended startup times
+- ⚠️ **Improve:** Need local image caching or registry mirror for faster pulls
+
+**5. Action Items & Lessons Learned:**
+- **Action:** Monitor pod startup after image pull completes (Owner: Next shift)
+- **Action:** Consider pre-pulling GPU monitoring images to nodes (Priority: P3)
+- **Lesson:** DCGM requires specific volume mounts not documented in helm chart
+- **Lesson:** GPU monitoring tools often have strict driver version dependencies
+- **Lesson:** ContainerCreating without events often indicates image pull in progress
+
 ---
 
-**Last Updated**: June 16, 2025 (Early Morning)  
-**Updated By**: Early Morning Shift AI Team (Claude Opus 4)  
-**Next Review**: After Authentik configuration (URGENT)
+**Last Updated**: June 16, 2025 (01:45 EST)  
+**Updated By**: AI Team (Claude Opus 4)  
+**Next Review**: After DCGM pod successfully starts
