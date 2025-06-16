@@ -5,3 +5,4 @@ resources:
   - ../../kube-prometheus-stack
   - ../../dcgm-exporter
   - ../../loki
+  - ../../oauth2-proxy-prometheus
