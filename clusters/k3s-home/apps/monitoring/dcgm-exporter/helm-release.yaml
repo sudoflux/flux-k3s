@@ -18,8 +18,31 @@ spec:
     nodeSelector:
       kubernetes.io/hostname: k3s3
     
+    # Additional volume mounts that might be needed
+    extraVolumeMounts:
+      - name: nvidia-install-dir-host
+        mountPath: /usr/local/nvidia
+        readOnly: true
+      - name: device-metrics
+        mountPath: /run/prometheus
+    
+    extraVolumes:
+      - name: nvidia-install-dir-host
+        hostPath:
+          path: /usr/local/nvidia
+          type: DirectoryOrCreate
+      - name: device-metrics
+        hostPath:
+          path: /run/prometheus
+          type: DirectoryOrCreate
+    
     # Use nvidia runtime for GPU access
     runtimeClassName: nvidia
+    
+    # Use a specific image version compatible with driver 535
+    image:
+      repository: nvcr.io/nvidia/k8s/dcgm-exporter
+      tag: 3.3.5-3.4.0-ubuntu22.04
     
     # Resource limits - increased CPU for initialization
     resources:
