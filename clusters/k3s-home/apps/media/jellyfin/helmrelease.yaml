@@ -21,9 +21,8 @@ spec:
         type: deployment
         pod:
           priorityClassName: critical  # High priority for media server
-          # Temporarily disabled until Intel GPU plugin is fixed
-          # nodeSelector:
-          #   intel.feature.node.kubernetes.io/gpu: "true"  # Match NFD label for Intel GPU nodes
+          nodeSelector:
+            kubernetes.io/hostname: k3s1  # Use k3s1 which has working Intel GPU
         containers:
           main:
             enabled: true
@@ -59,11 +58,11 @@ spec:
               requests:
                 memory: 2Gi
                 cpu: 1
-                # gpu.intel.com/i915: "1"  # Request Intel GPU
+                gpu.intel.com/i915: "1"  # Request Intel GPU
               limits:
                 memory: 8Gi
                 cpu: 4
-                # gpu.intel.com/i915: "1"  # Limit Intel GPU
+                gpu.intel.com/i915: "1"  # Limit Intel GPU
     service:
       main:
         controller: main
