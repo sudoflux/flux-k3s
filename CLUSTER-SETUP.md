@@ -199,17 +199,16 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
    - **Solution**: Deploy 3 masters with embedded etcd
 
 #### Priority 2 - Broken Services
-3. **DCGM Exporter** 🟠
-   - **Status**: ContainerCreating - Image pull in progress
-   - **Impact**: No GPU metrics or time-slicing visibility
-   - **Investigation**: Found pods stuck in ContainerCreating due to slow image pull
+3. **DCGM Exporter** ✅
+   - **Status**: Running - Successfully deployed and collecting metrics
+   - **Resolution**: Large image pull completed after ~15 minutes
    - **Actions Taken**:
      - Updated health probes with longer initial delays (60s liveness, 45s readiness)
      - Added required volume mounts (nvidia-install-dir-host, device-metrics)
      - Updated to compatible image version (3.3.5-3.4.0-ubuntu22.04)
      - Restored privileged mode temporarily for debugging
-   - **Current State**: Waiting for large DCGM image to pull (6+ minutes)
-   - **Next Steps**: Monitor pod startup after image pull completes
+   - **Current State**: Fully operational, exposing GPU metrics on port 9400
+   - **Metrics Available**: GPU temperature, utilization, memory, power usage
 
 4. **SOPS in Monitoring** 🟠
    - **Status**: Not decrypting secrets

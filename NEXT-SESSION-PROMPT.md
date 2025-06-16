@@ -10,6 +10,7 @@
 - ✅ Prometheus secured with OAuth2-Proxy + Authentik
 - ✅ Longhorn secured with OAuth2-Proxy + Authentik  
 - ✅ Created automated OAuth2 deployment script
+- ✅ DCGM exporter fixed and collecting GPU metrics
 - ✅ Week 1-3 of deployment plan COMPLETE
 
 ## 🔴 Critical Issues (SPOFs)
