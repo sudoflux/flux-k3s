@@ -3,9 +3,9 @@
 ## 📊 Cluster Health Status
 
 **Status**: ✅ Operational (Auth & Security Gaps Remain)  
-**Last Update**: June 15, 2025 (Evening)  
+**Last Update**: June 15, 2025 (Night)  
 **Last Incident**: Longhorn CSI complete failure (resolved) - See [AAR Log](#aar-log) for details  
-**Current Focus**: Authentication setup & monitoring alerts
+**Current Focus**: Authentication setup & securing exposed services
 
 ### 🚨 Critical Update - June 15, 2025
 **Major Incident Resolved**: 24-hour Longhorn outage due to kubelet path changes  
@@ -96,7 +96,7 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 
 ## 🟡 Active Work Items & Known Issues
 
-### ✅ Recently Completed (June 15, 2025)
+### ✅ Recently Completed (June 15-16, 2025)
 
 #### Day Shift Accomplishments
 1. **Monitoring Stack Storage** ✅
@@ -123,10 +123,11 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
    - **Coverage**: Volume health, node storage, disk capacity, CSI status
    - **Templates**: Alert message templates configured
    
-6. **Prometheus External Access** ✅
+6. **Prometheus External Access & OAuth2-Proxy Deployment** ✅
    - **Status**: Accessible at https://prometheus.fletcherlabs.net
-   - **Security**: ⚠️ NO AUTHENTICATION - high priority to secure
-   - **HTTPRoute**: Configured and working
+   - **OAuth2-Proxy**: Deployed and configured for Prometheus, awaiting Authentik integration
+   - **Security**: ⚠️ NO AUTHENTICATION YET - critical priority to complete setup
+   - **HTTPRoute**: Ready to be updated once Authentik is configured
    
 7. **Traefik Disable Instructions** ✅
    - **Documentation**: Complete guide to permanently disable K3s Traefik
@@ -137,6 +138,18 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
    - **Created**: Complete OAuth2-Proxy configurations
    - **Ready for**: Longhorn, Grafana, Prometheus integration
    - **Location**: `docs/oauth2-integration-templates.md`
+
+#### Night Shift Accomplishments
+9. **OAuth2-Proxy Deployment for Prometheus** ✅
+   - **Status**: Successfully deployed and running
+   - **Configuration**: OIDC provider pointing to Authentik
+   - **Issues Fixed**: Helm chart compatibility, cookie secret length, OIDC URL format
+   - **Next Step**: Complete Authentik setup to enable authentication
+   
+10. **Security Documentation** ✅
+    - **Created**: Step-by-step Authentik setup guide
+    - **Location**: `docs/authentik-prometheus-setup-guide.md`
+    - **Status Report**: `docs/oauth2-proxy-status-2025-06-15.md`
 
 ### Priority 1 - High
 1. **Authentik Configuration** 🔴
@@ -249,9 +262,9 @@ Located in `/home/josh/flux-k3s/docs/`:
 See [week4-tls-gateway-summary.md](docs/week4-tls-gateway-summary.md) for details.
 
 ### Current Week: Week 5 (June 17-23, 2025)
-**Focus**: Post-Incident Recovery & Resilience
+**Focus**: Post-Incident Recovery & Security Implementation
 
-#### ✅ Completed (June 15, 2025)
+#### ✅ Completed (June 15-16, 2025)
 1. **Critical Infrastructure Recovery**
    - ✅ Monitoring storage migrated (with fsGroup workaround)
    - ✅ Velero backups to B2 configured and tested
@@ -261,6 +274,7 @@ See [week4-tls-gateway-summary.md](docs/week4-tls-gateway-summary.md) for detail
    - ✅ Monitoring alerts configured (Longhorn, backup failures)
    - ✅ Prometheus external access (needs auth)
    - ✅ OAuth2 templates prepared
+   - ✅ OAuth2-Proxy deployed for Prometheus (awaiting Authentik)
 
 #### Priority 1 - High (This Week)
 1. **Authentik Configuration**
@@ -617,8 +631,40 @@ enable-gateway-api-app-protocol: "true" # Enables backend protocol selection
 - **Action:** Apply OAuth2-Proxy to Prometheus (Priority: P0)
 - **Lesson:** Never expose monitoring tools without authentication
 
+### AAR: OAuth2-Proxy Deployment (June 15-16, 2025 - Night)
+
+**1. What Happened:** Deployed OAuth2-Proxy for Prometheus to address the critical security exposure. Encountered multiple technical challenges during deployment.
+
+**2. Timeline:**
+- **Night Shift Start**: OAuth2-Proxy Helm repository added
+- **Initial Deploy**: Failed due to helm chart value changes (service.port deprecated)
+- **Second Issue**: Cookie secret length error (was 167 bytes, needs 32)
+- **Third Issue**: SOPS decryption not working in monitoring namespace
+- **Fourth Issue**: OIDC issuer URL format incorrect
+- **Resolution**: OAuth2-Proxy running, waiting for Authentik config
+
+**3. Technical Issues Resolved:**
+- **Helm Values**: Changed `service.port` to `service.portNumber` for v7.7.1
+- **Cookie Secret**: Generated proper 32-byte secret for AES cipher
+- **SOPS**: Added decryption config but used plain secret as workaround
+- **OIDC URL**: Removed trailing slash from issuer URL
+
+**4. What Went Well / What Could Be Improved:**
+- ✅ **Well:** Quick iteration and problem-solving
+- ✅ **Well:** Comprehensive documentation created
+- ✅ **Well:** OAuth2-Proxy successfully deployed
+- ⚠️ **Improve:** SOPS should have been configured from the start
+- ⚠️ **Improve:** Should have checked helm chart docs for breaking changes
+
+**5. Action Items & Lessons Learned:**
+- **Action:** Investigate why SOPS isn't decrypting in monitoring namespace (Priority: P2)
+- **Action:** Complete Authentik setup IMMEDIATELY (Priority: P0)
+- **Lesson:** Always check helm chart release notes for breaking changes
+- **Lesson:** OAuth2-Proxy cookie secret must be exactly 16, 24, or 32 bytes
+- **Lesson:** Authentik OIDC issuer URLs don't use trailing slashes
+
 ---
 
-**Last Updated**: June 15, 2025 (Evening)  
-**Updated By**: Evening Shift AI Team (Claude Opus 4)  
+**Last Updated**: June 16, 2025 (Night)  
+**Updated By**: Night Shift AI Team (Claude Opus 4)  
 **Next Review**: After Authentik configuration (URGENT)
