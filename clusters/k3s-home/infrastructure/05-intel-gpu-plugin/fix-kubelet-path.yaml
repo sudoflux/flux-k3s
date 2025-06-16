@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fix-kubelet-path
+  namespace: intel-device-plugins-system
+data:
+  fix-path.sh: |
+    #!/bin/sh
+    # Create symlink for Intel GPU plugin to find kubelet socket
+    mkdir -p /var/lib/kubelet/device-plugins
+    if [ ! -e /var/lib/kubelet/device-plugins/kubelet.sock ]; then
+      ln -sf /var/lib/rancher/k3s/agent/kubelet/device-plugins/kubelet.sock /var/lib/kubelet/device-plugins/kubelet.sock
+    fi
+    if [ ! -e /var/lib/kubelet/device-plugins/DEPRECATION ]; then
+      ln -sf /var/lib/rancher/k3s/agent/kubelet/device-plugins/DEPRECATION /var/lib/kubelet/device-plugins/DEPRECATION
+    fi
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fix-kubelet-path
+  namespace: intel-device-plugins-system
+spec:
+  selector:
+    matchLabels:
+      name: fix-kubelet-path
+  template:
+    metadata:
+      labels:
+        name: fix-kubelet-path
+    spec:
+      nodeSelector:
+        intel.feature.node.kubernetes.io/gpu: "true"
+      initContainers:
+      - name: fix-path
+        image: busybox:latest
+        command: ["/bin/sh", "/scripts/fix-path.sh"]
+        volumeMounts:
+        - name: script
+          mountPath: /scripts
+        - name: kubelet-legacy
+          mountPath: /var/lib/kubelet
+        - name: kubelet-k3s
+          mountPath: /var/lib/rancher/k3s/agent/kubelet
+        securityContext:
+          privileged: true
+      containers:
+      - name: pause
+        image: registry.k8s.io/pause:3.9
+      volumes:
+      - name: script
+        configMap:
+          name: fix-kubelet-path
+          defaultMode: 0755
+      - name: kubelet-legacy
+        hostPath:
+          path: /var/lib/kubelet
+          type: DirectoryOrCreate
+      - name: kubelet-k3s
+        hostPath:
+          path: /var/lib/rancher/k3s/agent/kubelet
+          type: Directory
+      tolerations:
+      - operator: Exists
