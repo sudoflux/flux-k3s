@@ -69,8 +69,9 @@ spec:
       additionalLabels:
         release: kube-prometheus-stack
     
-    # Security context - removed privileged mode for better security
+    # Security context - temporarily re-adding privileged mode to debug
     securityContext:
+      privileged: true
       capabilities:
         add:
           - SYS_ADMIN
