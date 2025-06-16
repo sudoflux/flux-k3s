@@ -2,12 +2,17 @@
 
 ## 📊 Cluster Health Status
 
-**Status**: ✅ Operational (Auth & Security Gaps Remain)  
-**Last Update**: June 15, 2025 (Night)  
+**Status**: ⚠️ Operational (Critical Security Issue - Prometheus Exposed)  
+**Last Update**: June 16, 2025 (Early Morning)  
 **Last Incident**: Longhorn CSI complete failure (resolved) - See [AAR Log](#aar-log) for details  
-**Current Focus**: Authentication setup & securing exposed services
+**Current Focus**: URGENT - Secure Prometheus via Authentik OAuth2 configuration
 
-### 🚨 Critical Update - June 15, 2025
+### 🚨 Critical Security Issue - June 16, 2025
+**URGENT**: Prometheus exposed without authentication at https://prometheus.fletcherlabs.net  
+**Status**: OAuth2-Proxy deployed and ready, waiting for Authentik configuration  
+**Action Required**: Complete Authentik setup immediately - see [CURRENT-CRITICAL-STATUS.md](CURRENT-CRITICAL-STATUS.md)
+
+### Previous Incident - June 15, 2025
 **Major Incident Resolved**: 24-hour Longhorn outage due to kubelet path changes  
 **Resolution**: Complete removal and fresh installation of Longhorn v1.6.2  
 **Essential Reading**:
@@ -151,37 +156,66 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
     - **Location**: `docs/authentik-prometheus-setup-guide.md`
     - **Status Report**: `docs/oauth2-proxy-status-2025-06-15.md`
 
-### Priority 1 - High
-1. **Authentik Configuration** 🔴
-   - **Status**: Deployed but needs initial setup
-   - **Action**: Create admin account and OAuth providers
-   - **Priority Services**: Prometheus (exposed!), Longhorn, Grafana
-   - **Templates Ready**: See `docs/oauth2-integration-templates.md`
-   
-2. **Secure Prometheus** 🔴
-   - **Status**: Publicly accessible without authentication
-   - **Risk**: System metrics and sensitive data exposed
-   - **Action**: Apply OAuth2-Proxy once Authentik configured
+#### Early Morning Shift Accomplishments (June 16)
+11. **OAuth2-Proxy DNS Resolution Fixed** ✅
+    - **Problem**: Pods couldn't resolve authentik.fletcherlabs.net internally
+    - **Solution**: Added hostAlias to map domain to gateway IP (192.168.10.224)
+    - **Status**: OAuth2-Proxy now reaching Authentik, getting expected 404
+    - **Docs**: `docs/oauth2-proxy-dns-fix-status.md`
+    
+12. **Critical Security Documentation** ✅
+    - **Created**: Urgent action guide for securing Prometheus
+    - **Location**: `CURRENT-CRITICAL-STATUS.md`
+    - **Contains**: Step-by-step instructions with exact commands
 
-### Priority 2 - Medium  
-3. **No High Availability**
+### Priority 1 - CRITICAL (Immediate Action Required)
+1. **Secure Prometheus via Authentik** 🔴🚨
+   - **Status**: EXPOSED WITHOUT AUTHENTICATION
+   - **OAuth2-Proxy**: Ready and waiting (DNS issue fixed)
+   - **Action Steps**:
+     1. Access https://authentik.fletcherlabs.net
+     2. Create admin account (NO 2FA)
+     3. Create OAuth2 provider for Prometheus
+     4. Update OAuth2-Proxy secret with client credentials
+     5. Apply HTTPRoute patch
+   - **Guide**: See `CURRENT-CRITICAL-STATUS.md` for exact commands
+   - **Time Required**: ~15 minutes
+
+### Priority 2 - High (After Prometheus Secured)
+2. **Complete OAuth2 for Other Services**
+   - **Longhorn UI**: Currently using basic auth
+   - **Grafana**: Enhance existing auth
+   - **Templates Ready**: `docs/oauth2-integration-templates.md`
+
+3. **DNS Hairpin Resolution**
+   - **Current**: Using hostAlias workaround
+   - **Target**: Configure CoreDNS for proper internal resolution
+   - **Benefit**: Centralized solution for all services
+
+### Priority 3 - Medium  
+4. **No High Availability**
    - Single control plane node (k3s-master1)
    - Single storage server (R730)
    - **Impact**: No failover capability
 
-4. **MinIO Local Storage**
+5. **SOPS Decryption Issue**
+   - **Status**: Not working in monitoring namespace
+   - **Workaround**: Using temporary plain secret
+   - **Impact**: OAuth2-Proxy secret not encrypted
+   
+6. **MinIO Local Storage**
    - **Status**: Storage corruption ("0 drives provided")
    - **Impact**: Local backups unavailable (B2 working fine)
    - **Action**: Investigate and repair when time permits
 
-### Priority 3 - Low
-5. **Traefik Installation Errors**
+### Priority 4 - Low
+7. **Traefik Installation Errors**
    - **Status**: K3s trying to install Traefik (we use Cilium)
    - **Impact**: None - just log noise
    - **Action**: Run `disable-traefik.sh` on master node
    - **Guide**: See `disable-traefik-instructions.md`
 
-6. **DCGM Exporter**
+8. **DCGM Exporter**
    - **Status**: CrashLoopBackOff (GPU metrics)
    - **Impact**: No GPU monitoring
    - **Action**: Fix when GPU monitoring needed
@@ -663,8 +697,37 @@ enable-gateway-api-app-protocol: "true" # Enables backend protocol selection
 - **Lesson:** OAuth2-Proxy cookie secret must be exactly 16, 24, or 32 bytes
 - **Lesson:** Authentik OIDC issuer URLs don't use trailing slashes
 
+### AAR: OAuth2-Proxy DNS Resolution (June 16, 2025 - Early Morning)
+
+**1. What Happened:** OAuth2-Proxy pods couldn't resolve authentik.fletcherlabs.net from inside the cluster, preventing OIDC discovery and authentication setup.
+
+**2. Timeline:**
+- **Detection**: OAuth2-Proxy pods in CrashLoopBackOff with DNS resolution errors
+- **Analysis**: Internal pods can't resolve external domains that point back to cluster
+- **Solution**: Added hostAlias to OAuth2-Proxy deployment
+- **Result**: Pods now reach Authentik, getting expected 404 (provider not configured)
+
+**3. Root Cause Analysis:**
+- **Direct Cause:** Classic DNS hairpin/NAT loopback issue
+- **Contributing Factor:** Cluster DNS doesn't resolve external domains internally
+- **Impact:** Blocked OAuth2-Proxy from performing OIDC discovery
+
+**4. What Went Well / What Could Be Improved:**
+- ✅ **Well:** Quick diagnosis and implementation of workaround
+- ✅ **Well:** Comprehensive documentation created
+- ✅ **Well:** Multiple solution options evaluated
+- ⚠️ **Improve:** Should implement proper CoreDNS solution
+- ⚠️ **Improve:** This is a common pattern that needs standardization
+
+**5. Action Items & Lessons Learned:**
+- **Action:** Implement CoreDNS hairpin resolution (Priority: P2)
+- **Action:** Document pattern for other services (Priority: P3)
+- **Lesson:** Internal services often can't resolve their own external domains
+- **Lesson:** HostAlias is a quick fix, CoreDNS is the proper solution
+- **Lesson:** Always test DNS resolution from pod perspective
+
 ---
 
-**Last Updated**: June 16, 2025 (Night)  
-**Updated By**: Night Shift AI Team (Claude Opus 4)  
+**Last Updated**: June 16, 2025 (Early Morning)  
+**Updated By**: Early Morning Shift AI Team (Claude Opus 4)  
 **Next Review**: After Authentik configuration (URGENT)
