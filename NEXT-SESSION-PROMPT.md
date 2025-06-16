@@ -3,7 +3,7 @@
 ## Session Context
 **Date**: June 16, 2025  
 **Status**: Foundation Complete - Critical SPOFs Remain  
-**Last Session**: Secured Prometheus & Longhorn with OAuth2  
+**Last Session**: Fixed Intel GPU, cleaned cluster, identified Longhorn fsGroup bug  
 **Comprehensive Analysis**: See [DEPLOYMENT-ANALYSIS.md](DEPLOYMENT-ANALYSIS.md)
 
 ## 🎉 Recent Accomplishments
@@ -11,6 +11,9 @@
 - ✅ Longhorn secured with OAuth2-Proxy + Authentik  
 - ✅ Created automated OAuth2 deployment script
 - ✅ DCGM exporter fixed and collecting GPU metrics
+- ✅ Intel GPU plugin working on BOTH k3s1 and k3s2
+- ✅ All media services recovered and running
+- ✅ Cluster thoroughly cleaned of orphaned resources
 - ✅ Week 1-3 of deployment plan COMPLETE
 
 ## 🔴 Critical Issues (SPOFs)
@@ -29,26 +32,39 @@ Risk: VM failure = no cluster management
 Priority: CRITICAL
 ```
 
-### 3. GPU Monitoring Broken
+### 3. Longhorn fsGroup Bug
 ```
-Current: DCGM exporter in CrashLoopBackOff
-Risk: No visibility into GPU time-slicing
+Current: v1.6.2 has known bug preventing monitoring stack from using Longhorn
+Impact: Prometheus/AlertManager/Grafana on local-path instead of Longhorn
+Fix: Upgrade to Longhorn 1.9.x
 Priority: HIGH
 ```
 
 ## 🎯 Immediate Actions (This Session)
 
-### 1. Fix DCGM Exporter
+### 1. Upgrade Longhorn to v1.9.x
 ```bash
-# Debug the GPU monitoring
-kubectl logs -n monitoring $(kubectl get pods -n monitoring -l app.kubernetes.io/name=dcgm-exporter -o jsonpath='{.items[0].metadata.name}')
-kubectl describe pod -n monitoring -l app.kubernetes.io/name=dcgm-exporter
+# Current version with fsGroup bug
+kubectl get helmrelease -n longhorn-system longhorn -o jsonpath='{.spec.chart.spec.version}'
+# Shows: 1.6.2
 
-# Check if GPU is visible
-kubectl exec -it -n monitoring $(kubectl get pods -n monitoring -l app.kubernetes.io/name=dcgm-exporter -o jsonpath='{.items[0].metadata.name}') -- nvidia-smi
+# Update HelmRelease to 1.9.x
+# See: docs/longhorn-fsgroup-issue.md for full details
+
+# The bug prevents pods with fsGroup from mounting Longhorn volumes
+# This is why monitoring stack is on local-path
 ```
 
-### 2. Test Velero Restore
+### 2. Fix Grafana After Upgrade
+```bash
+# Grafana is currently scaled to 0 due to fsGroup mount failures
+kubectl scale deployment -n monitoring kube-prometheus-stack-grafana --replicas=1
+
+# After Longhorn upgrade, it should start successfully
+# Then import NVIDIA GPU dashboard: ID 12239
+```
+
+### 3. Test Velero Restore
 ```bash
 # Create test backup
 velero backup create test-$(date +%Y%m%d-%H%M%S) --include-namespaces default
@@ -60,7 +76,7 @@ velero backup get
 velero restore create test-restore --from-backup <backup-name> --namespace-mappings default:restore-test
 ```
 
-### 3. Fix SOPS in Monitoring Namespace
+### 4. Fix SOPS in Monitoring Namespace
 ```bash
 # Check kustomize-controller logs
 kubectl logs -n flux-system deployment/kustomize-controller | grep -i "monitoring\|sops"
@@ -71,23 +87,30 @@ kubectl get secret -n flux-system sops-age -o yaml
 
 ## 📋 Today's Priority Order
 
-1. **DCGM Exporter** (30 min)
-   - Fix GPU metrics collection
-   - Verify Grafana dashboard
+1. **Longhorn Upgrade** (2-3 hours)
+   - Backup data first!
+   - Upgrade from 1.6.2 to 1.9.x
+   - Test with a pod that uses fsGroup
+   - Move monitoring stack to Longhorn
 
-2. **Backup Testing** (45 min)
+2. **Fix Grafana** (30 min)
+   - Scale back to 1 replica
+   - Verify Longhorn PVC mounts correctly
+   - Import GPU dashboards
+
+3. **Backup Testing** (45 min)
    - Test full restore procedure
    - Document recovery time
    - Update runbook
 
-3. **SOPS Fix** (30 min)
+4. **SOPS Fix** (30 min)
    - Debug monitoring namespace
    - Encrypt OAuth2 secrets
    - Remove plain text secrets
 
-4. **Documentation** (30 min)
-   - Archive old critical alerts
+5. **Documentation** (30 min)
    - Update cluster status
+   - Document Longhorn upgrade
    - Create GPU monitoring guide
 
 ## 🏗️ Architecture Decisions Needed
@@ -123,6 +146,9 @@ flux get all -A | grep -v "True"
 # Backup status
 velero backup get
 velero schedule get
+
+# GPU resources
+kubectl get nodes -o custom-columns=NAME:.metadata.name,INTEL:.status.allocatable."gpu\.intel\.com/i915",NVIDIA:.status.allocatable."nvidia\.com/gpu"
 ```
 
 ## 🔧 Useful Commands
@@ -145,14 +171,15 @@ kubectl get certificate -A
 ## 📚 Key Documentation
 - **Comprehensive Analysis**: [DEPLOYMENT-ANALYSIS.md](DEPLOYMENT-ANALYSIS.md)
 - **Cluster Overview**: [CLUSTER-SETUP.md](CLUSTER-SETUP.md)
+- **Longhorn fsGroup Bug**: [docs/longhorn-fsgroup-issue.md](docs/longhorn-fsgroup-issue.md)
 - **OAuth2 Automation**: `scripts/deploy-oauth2-service.sh`
-- **Longhorn Incident**: [docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md](docs/LONGHORN-INCIDENT-POSTMORTEM-2025-06-15.md)
+- **Intel GPU K3s Issue**: [docs/intel-gpu-plugin-k3s-issue.md](docs/intel-gpu-plugin-k3s-issue.md)
 
-## 🎓 Learning from Incidents
-1. **Always test changes** in non-production first
-2. **Never modify critical paths** without migration plan
-3. **Monitor CSI driver health** continuously
-4. **Document everything** - saved hours during recovery
+## 🎓 Key Technical Debt
+
+1. **Legacy kubelet directories** - Created during Longhorn incident, now required for GPU support
+2. **Monitoring on local-path** - Due to Longhorn fsGroup bug, needs v1.9.x upgrade
+3. **No HA** - Single points of failure for storage and control plane
 
 ---
-**Remember**: Foundation is solid, but those SPOFs need urgent attention!
+**Remember**: Longhorn upgrade is priority #1 to get monitoring fully on distributed storage!

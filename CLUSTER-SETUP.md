@@ -185,6 +185,30 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
     - **Guide**: `LONGHORN-OAUTH2-SETUP.md` (5-minute setup)
     - **Pending**: Only needs Authentik configuration
 
+### Day Shift Accomplishments (June 16, 2025)
+16. **Intel GPU Plugin Fixed** ✅
+    - **Problem**: Plugin only worked on k3s1, failed on k3s2
+    - **Root Cause**: Legacy kubelet directories from Longhorn incident
+    - **Resolution**: Fixed permissions and paths, now working on both nodes
+    - **GPU Resources**: 10 Intel GPU on k3s1, 10 on k3s2, 4 NVIDIA on k3s3
+    
+17. **Media Services Recovered** ✅
+    - **Issue**: All media PVCs stuck due to "Released" PVs
+    - **Fixed**: Cleared claimRef on all PVs, updated wrong PVC references
+    - **Result**: All media services now running
+    
+18. **Cluster Cleanup** ✅
+    - **Removed**: 36 orphaned node-debugger pods
+    - **Deleted**: Old k3s-feature-fix ConfigMap from Longhorn incident
+    - **Fixed**: Multiple stuck pods and failed jobs
+    - **Documented**: All technical debt and workarounds
+    
+19. **Longhorn fsGroup Bug Identified** 🔴
+    - **Discovery**: Monitoring stack can't use Longhorn due to v1.6.2 bug
+    - **Research**: ChatGPT o4 mini provided detailed analysis
+    - **Solution**: Requires upgrade to Longhorn v1.9.x
+    - **Current State**: Grafana scaled to 0, monitoring on local-path
+
 ### 🟡 Active Work Items
 
 #### Priority 1 - Critical SPOFs
@@ -215,16 +239,24 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
    - **Impact**: OAuth2 secrets in plain text
    - **Workaround**: Manual secret creation
 
-#### Priority 3 - Technical Debt
-5. **DNS Hairpin Resolution** 🟡
+#### Priority 3 - Storage Issues
+5. **Longhorn fsGroup Bug** 🔴
+   - **Version**: 1.6.2 (current)
+   - **Impact**: Pods with fsGroup can't mount Longhorn volumes
+   - **Affected**: Prometheus, AlertManager, Grafana
+   - **Workaround**: Using local-path storage
+   - **Solution**: Upgrade to Longhorn 1.9.x
+
+#### Priority 4 - Technical Debt
+6. **DNS Hairpin Resolution** 🟡
    - **Current**: hostAlias workaround in OAuth2 proxies
    - **Solution**: Configure CoreDNS properly
 
-6. **MinIO Local Storage** 🟡
+7. **MinIO Local Storage** 🟡
    - **Status**: Broken ("0 drives provided")
    - **Impact**: No local backups (B2 working)
 
-7. **Traefik Noise** 🟢
+8. **Traefik Noise** 🟢
    - **Status**: K3s trying to install Traefik
    - **Impact**: Log spam only
    - **Fix**: Run disable-traefik.sh
@@ -234,7 +266,7 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 ### Media Stack (`/clusters/k3s-home/apps/media/`)
 | Service | URL | Status | Notes |
 |---------|-----|--------|-------|
-| Jellyfin | http://jellyfin.fletcherlabs.net | ✅ Running | GPU transcoding on k3s3 |
+| Jellyfin | http://jellyfin.fletcherlabs.net | ✅ Running | GPU transcoding on k3s1 |
 | Plex | http://plex.fletcherlabs.net | ✅ Running | |
 | Sonarr | http://sonarr.fletcherlabs.net | ✅ Running | |
 | Radarr | http://radarr.fletcherlabs.net | ✅ Running | |
@@ -777,6 +809,6 @@ enable-gateway-api-app-protocol: "true" # Enables backend protocol selection
 
 ---
 
-**Last Updated**: June 16, 2025 (01:45 EST)  
+**Last Updated**: June 16, 2025 (18:00 UTC)  
 **Updated By**: AI Team (Claude Opus 4)  
-**Next Review**: After DCGM pod successfully starts
+**Next Priority**: Upgrade Longhorn to v1.9.x to fix monitoring storage

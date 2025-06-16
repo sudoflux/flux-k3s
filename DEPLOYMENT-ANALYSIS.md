@@ -99,11 +99,11 @@
 ## 📋 Prioritized Action Plan
 
 ### 🔥 Immediate (This Week)
-1. **Verify GPU Monitoring Dashboard**
+1. **Upgrade Longhorn to v1.9.x**
    ```bash
-   # Check DCGM metrics are being scraped
-   curl -s http://prometheus.fletcherlabs.net/api/v1/targets | jq '.data.activeTargets[] | select(.labels.job=="dcgm-exporter")'
-   # Import Grafana dashboard ID 12239 for GPU monitoring
+   # Current version with fsGroup bug
+   kubectl get helmrelease -n longhorn-system longhorn -o jsonpath='{.spec.chart.spec.version}'
+   # Update HelmRelease to 1.9.x to fix monitoring storage issue
    ```
 
 2. **Test Velero Restore**
