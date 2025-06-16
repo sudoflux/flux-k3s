@@ -20,7 +20,7 @@ spec:
     prometheus:
       enabled: true
       servicemonitor:
-        enabled: true
+        enabled: false # Disabled until monitoring CRDs are installed
     # Ensure cert-manager works with our Pod Security Standards
     global:
       podSecurityPolicy:
