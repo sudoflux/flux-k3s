@@ -53,6 +53,12 @@ spec:
         
     replicaCount: 2
     
+    # Add hostAlias to resolve authentik.fletcherlabs.net to gateway IP
+    hostAliases:
+      - ip: "192.168.10.224"
+        hostnames:
+          - "authentik.fletcherlabs.net"
+    
     # Pod anti-affinity for HA
     affinity:
       podAntiAffinity:
