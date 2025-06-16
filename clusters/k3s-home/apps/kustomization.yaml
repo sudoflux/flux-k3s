@@ -9,4 +9,5 @@ resources:
   - ./monitoring-kustomization.yaml
   - ./ai
   - ./longhorn-kustomization.yaml
+  - ./longhorn-system-kustomization.yaml
   - ./velero-kustomization.yaml
