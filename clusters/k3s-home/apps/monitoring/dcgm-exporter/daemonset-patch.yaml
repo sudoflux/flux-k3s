@@ -1,9 +1,0 @@
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: dcgm-exporter
-  namespace: monitoring
-spec:
-  template:
-    spec:
-      runtimeClassName: nvidia

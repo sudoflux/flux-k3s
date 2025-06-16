@@ -21,13 +21,13 @@ spec:
     # Use nvidia runtime for GPU access
     runtimeClassName: nvidia
     
-    # Resource limits
+    # Resource limits - increased CPU for initialization
     resources:
       requests:
         cpu: 100m
         memory: 128Mi
       limits:
-        cpu: 200m
+        cpu: 500m
         memory: 256Mi
     
     # Service configuration
@@ -42,6 +42,26 @@ spec:
       - "-f"
       - "/etc/dcgm-exporter/dcp-metrics-included.csv"
     
+    # Health probe configuration for proper startup handling
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 9400
+      initialDelaySeconds: 60  # Longer delay for GPU initialization
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 3
+    
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 9400
+      initialDelaySeconds: 45  # Allow time for DCGM to fully initialize
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 2
+      successThreshold: 1
+    
     # ServiceMonitor for Prometheus scraping
     serviceMonitor:
       enabled: true
@@ -49,12 +69,13 @@ spec:
       additionalLabels:
         release: kube-prometheus-stack
     
-    # Security context for GPU access
+    # Security context - removed privileged mode for better security
     securityContext:
-      privileged: true
       capabilities:
         add:
           - SYS_ADMIN
+      runAsNonRoot: false
+      runAsUser: 0
     
     # Environment variables for NVIDIA libraries
     extraEnv:
