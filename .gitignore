@@ -1,1 +1,5 @@
 clusters/k3s-home/apps/media/recyclarr/secret.yaml
+
+# Temporary files
+scripts/minio-bucket-setup.yaml
+velero-v1.14.1-linux-amd64/
