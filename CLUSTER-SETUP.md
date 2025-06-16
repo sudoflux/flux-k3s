@@ -2,15 +2,15 @@
 
 ## 📊 Cluster Health Status
 
-**Status**: ⚠️ Operational (Critical Security Issue - Prometheus Exposed)  
-**Last Update**: June 16, 2025 (Early Morning)  
-**Last Incident**: Longhorn CSI complete failure (resolved) - See [AAR Log](#aar-log) for details  
-**Current Focus**: URGENT - Secure Prometheus via Authentik OAuth2 configuration
+**Status**: ✅ Fully Operational  
+**Last Update**: June 16, 2025 (03:30 UTC)  
+**Last Incident**: Prometheus security exposure (resolved) - OAuth2 authentication implemented  
+**Current Focus**: Complete OAuth2 setup for remaining services (Longhorn, Grafana)
 
-### 🚨 Critical Security Issue - June 16, 2025
-**URGENT**: Prometheus exposed without authentication at https://prometheus.fletcherlabs.net  
-**Status**: OAuth2-Proxy deployed and ready, waiting for Authentik configuration  
-**Action Required**: Complete Authentik setup immediately - see [CURRENT-CRITICAL-STATUS.md](CURRENT-CRITICAL-STATUS.md)
+### ✅ Security Issue Resolved - June 16, 2025
+**RESOLVED**: Prometheus now secured with OAuth2 authentication via Authentik  
+**Status**: OAuth2-Proxy successfully deployed and protecting all access  
+**Next Steps**: Apply same security model to Longhorn UI - see [LONGHORN-OAUTH2-SETUP.md](LONGHORN-OAUTH2-SETUP.md)
 
 ### Previous Incident - June 15, 2025
 **Major Incident Resolved**: 24-hour Longhorn outage due to kubelet path changes  
@@ -168,18 +168,29 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
     - **Location**: `CURRENT-CRITICAL-STATUS.md`
     - **Contains**: Step-by-step instructions with exact commands
 
-### Priority 1 - CRITICAL (Immediate Action Required)
-1. **Secure Prometheus via Authentik** 🔴🚨
-   - **Status**: EXPOSED WITHOUT AUTHENTICATION
-   - **OAuth2-Proxy**: Ready and waiting (DNS issue fixed)
-   - **Action Steps**:
-     1. Access https://authentik.fletcherlabs.net
-     2. Create admin account (NO 2FA)
-     3. Create OAuth2 provider for Prometheus
-     4. Update OAuth2-Proxy secret with client credentials
-     5. Apply HTTPRoute patch
-   - **Guide**: See `CURRENT-CRITICAL-STATUS.md` for exact commands
-   - **Time Required**: ~15 minutes
+### ✅ Critical Security Issue Resolved (June 16, 2025 Early Morning)
+13. **Prometheus OAuth2 Authentication** ✅
+    - **Problem**: Prometheus was exposed without authentication
+    - **Solution**: Deployed OAuth2-Proxy with Authentik integration
+    - **Key Fixes**: OIDC issuer URL trailing slash, DNS hostAlias
+    - **Result**: All access now requires Authentik authentication
+    
+14. **OAuth2 Automation Created** ✅
+    - **Script**: `scripts/deploy-oauth2-service.sh`
+    - **Purpose**: Automates OAuth2-Proxy deployment for any service
+    - **Benefit**: Reduces 30-45 minute process to 5-10 minutes
+    
+15. **Longhorn OAuth2 Prepared** ✅
+    - **Status**: All manifests created and committed
+    - **Guide**: `LONGHORN-OAUTH2-SETUP.md` (5-minute setup)
+    - **Pending**: Only needs Authentik configuration
+
+### Priority 1 - High (Immediate Action Required)
+1. **Complete Longhorn OAuth2 Setup** 🟡
+   - **Status**: Manifests ready, needs Authentik configuration
+   - **Guide**: [LONGHORN-OAUTH2-SETUP.md](LONGHORN-OAUTH2-SETUP.md)
+   - **Time Required**: ~5 minutes
+   - **Impact**: Longhorn UI still using basic auth
 
 ### Priority 2 - High (After Prometheus Secured)
 2. **Complete OAuth2 for Other Services**
@@ -248,9 +259,9 @@ This K3s homelab cluster runs media services, AI workloads, and monitoring infra
 | Service | URL | Status | Notes |
 |---------|-----|--------|-------|
 | Longhorn | https://longhorn.fletcherlabs.net | ✅ Running | v1.6.2 fresh install after incident |
-| Authentik | https://authentik.fletcherlabs.net | ✅ Deployed | Needs initial admin setup (NO 2FA) |
+| Authentik | https://authentik.fletcherlabs.net | ✅ Running | Admin configured, OAuth2 providers active |
 | Grafana | https://grafana.fletcherlabs.net | ✅ Running | admin / check SOPS secret |
-| Prometheus | https://prometheus.fletcherlabs.net | ⚠️ Running | NO AUTH - SECURITY RISK |
+| Prometheus | https://prometheus.fletcherlabs.net | ✅ Running | Secured with OAuth2-Proxy + Authentik |
 | Loki | N/A | ✅ Running | Log aggregation working |
 | Velero | N/A | ✅ Running | B2 backups configured, MinIO local broken |
 
