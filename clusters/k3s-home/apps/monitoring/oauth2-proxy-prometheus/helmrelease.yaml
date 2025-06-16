@@ -20,7 +20,7 @@ spec:
         email_domains = [ "*" ]
         upstreams = [ "http://kube-prometheus-stack-prometheus:9090" ]
         provider = "oidc"
-        oidc_issuer_url = "https://authentik.fletcherlabs.net/application/o/prometheus/"
+        oidc_issuer_url = "https://authentik.fletcherlabs.net/application/o/prometheus"
         redirect_url = "https://prometheus.fletcherlabs.net/oauth2/callback"
         cookie_secure = true
         cookie_domains = [".fletcherlabs.net"]
