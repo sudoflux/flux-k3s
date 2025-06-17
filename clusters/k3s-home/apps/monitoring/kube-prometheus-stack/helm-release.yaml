@@ -57,11 +57,11 @@ spec:
             cpu: 4
             memory: 10Gi
         
-        # Storage configuration - using longhorn-nvme for persistence
+        # Storage configuration - using local-path for persistence
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: "longhorn-nvme"
+              storageClassName: "local-path"
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
@@ -96,10 +96,10 @@ spec:
         userKey: admin-user
         passwordKey: admin-password
       
-      # Persistence using longhorn-nvme for data durability
+      # Persistence using local-path for data durability
       persistence:
         enabled: true
-        storageClassName: "longhorn-nvme"
+        storageClassName: "local-path"
         accessModes:
           - ReadWriteOnce
         size: 10Gi
@@ -176,11 +176,11 @@ spec:
             cpu: 500m
             memory: 1Gi
         
-        # Storage using longhorn-nvme for persistence
+        # Storage using local-path for persistence
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: "longhorn-nvme"
+              storageClassName: "local-path"
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:

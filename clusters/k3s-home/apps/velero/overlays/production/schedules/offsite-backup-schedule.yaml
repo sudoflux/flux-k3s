@@ -10,10 +10,11 @@ spec:
   template:
     includedNamespaces:
     - authentik
-    - longhorn-system
+    # - longhorn-system  # Removed - Longhorn no longer in use
     - flux-system
     - media
     - ai
+    - monitoring  # Added monitoring namespace
     storageLocation: b2-offsite
     snapshotVolumes: false  # B2 doesn't support volume snapshots
     ttl: "2160h"  # Retain for 90 days

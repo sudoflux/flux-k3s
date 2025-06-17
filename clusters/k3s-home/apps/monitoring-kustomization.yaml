@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
-    - name: longhorn
+    - name: auth
   path: ./clusters/k3s-home/apps/monitoring/overlays/production
   prune: true
   sourceRef:

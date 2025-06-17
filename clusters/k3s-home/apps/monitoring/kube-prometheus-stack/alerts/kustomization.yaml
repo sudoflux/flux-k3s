@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
-  - longhorn-alerts.yaml
+  # - longhorn-alerts.yaml  # Disabled - Longhorn removed from cluster
   - storage-alerts.yaml
   - velero-alerts.yaml
   - node-alerts.yaml

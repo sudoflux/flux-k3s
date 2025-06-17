@@ -30,10 +30,10 @@ spec:
           cpu: 500m
           memory: 512Mi
       
-      # Persistence using longhorn-nvme for data durability
+      # Persistence using local-path for data durability
       persistence:
         enabled: true
-        storageClass: "longhorn-nvme"
+        storageClass: "local-path"
         size: 10Gi
     
     # Loki configuration

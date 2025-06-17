@@ -9,13 +9,14 @@ spec:
   template:
     includedNamespaces:
     - authentik
-    - longhorn-system
+    # - longhorn-system  # Removed - Longhorn no longer in use
     - flux-system
     - media
     - ai
+    - monitoring  # Added monitoring namespace
     storageLocation: minio-local
-    volumeSnapshotLocations:
-    - longhorn-csi
+    # volumeSnapshotLocations:  # Disabled - local-path doesn't support snapshots
+    # - local-path-csi
     ttl: "168h"  # Retain for 7 days
 ---
 # All namespaces backup weekly
@@ -28,6 +29,6 @@ spec:
   schedule: "0 3 * * 0"  # 3 AM every Sunday
   template:
     storageLocation: minio-local
-    volumeSnapshotLocations:
-    - longhorn-csi
+    # volumeSnapshotLocations:  # Disabled - local-path doesn't support snapshots
+    # - local-path-csi
     ttl: "720h"  # Retain for 30 days
