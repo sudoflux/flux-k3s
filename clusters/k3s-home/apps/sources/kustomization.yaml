@@ -11,3 +11,4 @@ resources:
   - prometheus-community-helmrepository.yaml
   - grafana-helmrepository.yaml
   - nvidia-dcgm-helmrepository.yaml
+  - oauth2-proxy-helmrepository.yaml
