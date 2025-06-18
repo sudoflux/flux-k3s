@@ -2,6 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: monitoring
 resources:
-  - temp-secret.yaml  # Temporarily using plain secret until SOPS issue is fixed
-  #- secret.yaml
+  #- temp-secret.yaml  # Temporarily using plain secret until SOPS issue is fixed
+  - secret.yaml
   - helmrelease.yaml
