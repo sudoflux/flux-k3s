@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: longhorn
-      version: "1.6.2"  # Latest stable version
+      version: "1.9.0"  # Latest stable with fsGroup fix
       sourceRef:
         kind: HelmRepository
         name: longhorn
@@ -17,6 +17,11 @@ spec:
     # K3s specific configuration
     csi:
       kubeletRootDir: /var/lib/rancher/k3s/agent/kubelet
+      # Fix for fsGroup issues in v1.9.0
+      attacherReplicaCount: 1
+      provisionerReplicaCount: 1
+      resizerReplicaCount: 1
+      snapshotterReplicaCount: 1
     
     # Default settings
     defaultSettings:

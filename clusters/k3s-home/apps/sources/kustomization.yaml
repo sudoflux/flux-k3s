@@ -6,7 +6,7 @@ resources:
   - bjw-s.yaml
   - authentik.yaml
   - bitnami.yaml
-  # - longhorn-helmrepository.yaml  # Disabled - Longhorn removed from cluster
+  - longhorn-helmrepository.yaml  # Re-enabled for v1.9.0 with fsGroup fix
   - velero-helmrepository.yaml
   - prometheus-community-helmrepository.yaml
   - grafana-helmrepository.yaml
