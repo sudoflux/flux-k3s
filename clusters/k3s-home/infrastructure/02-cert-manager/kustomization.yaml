@@ -5,4 +5,4 @@ resources:
   - helmrepository.yaml
   - helmrelease-basic.yaml  # Using basic version without monitoring
   - cloudflare-api-token-secret.yaml
-  # - letsencrypt-issuer.yaml # Commented out temporarily until cert-manager CRDs are installed
+  - cluster-issuer.yaml
